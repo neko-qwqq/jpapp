@@ -22,6 +22,20 @@ struct RootView: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 8)
                 .opacity(isShowingLaunch ? 0 : 1)
+                .background(alignment: .bottom) {
+                    LinearGradient(
+                        colors: [
+                            AoiTheme.Colors.porcelain.opacity(0.0),
+                            AoiTheme.Colors.porcelain.opacity(0.96)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 176)
+                    .offset(y: 34)
+                    .ignoresSafeArea()
+                    .opacity(isShowingLaunch ? 0 : 1)
+                }
         }
         .overlay {
             if isShowingLaunch {
