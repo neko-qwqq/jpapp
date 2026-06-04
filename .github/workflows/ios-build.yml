@@ -139,7 +139,7 @@ jobs:
           cp -R "$APP_PATH" artifacts/AoiJapanese.app
           xcrun simctl install "$UDID" "$APP_PATH"
           xcrun simctl launch "$UDID" com.example.AoiJapanese
-          sleep 4
+          sleep 8
 
           xcrun simctl io "$UDID" screenshot screenshots/home.png
           xcrun simctl shutdown "$UDID"

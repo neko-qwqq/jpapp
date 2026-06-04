@@ -21,6 +21,8 @@ struct RootView: View {
                     .zIndex(3)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AoiBackground())
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.45) {
                 withAnimation(.easeInOut(duration: 0.48)) {
