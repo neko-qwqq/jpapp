@@ -14,7 +14,7 @@ struct WordsView: View {
                 }
                 .aoiPagePadding()
                 .padding(.top, 14)
-                .padding(.bottom, 96)
+                .padding(.bottom, AoiTheme.Layout.tabBarContentInset)
             }
             .background(AoiBackground())
             .searchable(text: $viewModel.searchText, prompt: "搜索单词、假名或中文")

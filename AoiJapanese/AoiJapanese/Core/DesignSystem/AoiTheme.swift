@@ -27,6 +27,7 @@ enum AoiTheme {
         static let cardRadius: CGFloat = 8
         static let compactRadius: CGFloat = 8
         static let controlRadius: CGFloat = 14
+        static let tabBarContentInset: CGFloat = 178
     }
 
     enum Shadow {

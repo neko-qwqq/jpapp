@@ -34,7 +34,7 @@ struct HomeView: View {
                 }
                 .aoiPagePadding()
                 .padding(.top, 14)
-                .padding(.bottom, 96)
+                .padding(.bottom, AoiTheme.Layout.tabBarContentInset)
             }
             .background(AoiBackground())
             .navigationBarTitleDisplayMode(.inline)

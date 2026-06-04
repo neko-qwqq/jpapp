@@ -14,7 +14,7 @@ struct ProfileView: View {
                 }
                 .aoiPagePadding()
                 .padding(.top, 14)
-                .padding(.bottom, 96)
+                .padding(.bottom, AoiTheme.Layout.tabBarContentInset)
             }
             .background(AoiBackground())
             .navigationTitle("我的")
