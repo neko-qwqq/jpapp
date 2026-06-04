@@ -1,0 +1,19 @@
+.DS_Store
+
+# Xcode user state
+*.xcuserstate
+xcuserdata/
+DerivedData/
+build/
+
+# Swift Package Manager
+.build/
+
+# Node / Workers backend
+node_modules/
+.npm-cache/
+.wrangler/
+.dev.vars
+
+# Logs
+*.log

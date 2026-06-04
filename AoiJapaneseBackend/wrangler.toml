@@ -1,0 +1,20 @@
+name = "aoi-japanese-backend"
+main = "src/index.ts"
+compatibility_date = "2026-06-04"
+
+[vars]
+OPENAI_CHAT_MODEL = "gpt-4.1-mini"
+OPENAI_HIGH_QUALITY_MODEL = "gpt-4.1"
+OPENAI_CLASSIFIER_MODEL = "gpt-4.1-nano"
+OPENAI_TRANSCRIBE_MODEL = "gpt-4o-mini-transcribe"
+OPENAI_TTS_MODEL = "gpt-4o-mini-tts"
+
+[[kv_namespaces]]
+binding = "AI_MEMORY_KV"
+id = "replace-with-production-kv-id"
+preview_id = "replace-with-preview-kv-id"
+
+[[d1_databases]]
+binding = "AI_LOGS_DB"
+database_name = "aoi-ai-logs"
+database_id = "replace-with-d1-database-id"
