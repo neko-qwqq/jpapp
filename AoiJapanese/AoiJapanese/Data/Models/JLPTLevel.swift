@@ -38,7 +38,7 @@ enum JLPTLevel: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .zero:
             return LinearGradient(
-                colors: [AoiTheme.Colors.softBlue, AoiTheme.Colors.primaryBlue],
+                colors: [AoiTheme.Colors.sakuraSoft, AoiTheme.Colors.primaryBlue],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -50,13 +50,13 @@ enum JLPTLevel: String, CaseIterable, Identifiable, Codable {
             )
         case .n4:
             return LinearGradient(
-                colors: [AoiTheme.Colors.matcha, Color(red: 0.34, green: 0.52, blue: 0.54)],
+                colors: [AoiTheme.Colors.matcha, Color(red: 0.42, green: 0.58, blue: 0.48)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         case .n3:
             return LinearGradient(
-                colors: [AoiTheme.Colors.sakura, Color(red: 0.76, green: 0.34, blue: 0.52)],
+                colors: [AoiTheme.Colors.sakura, AoiTheme.Colors.primaryBlue],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )

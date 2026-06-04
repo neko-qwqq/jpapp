@@ -64,12 +64,12 @@ struct AIChatView: View {
                             Text(scene.title)
                         }
                         .font(AoiTheme.Typography.title(14, weight: .bold))
-                        .foregroundStyle(viewModel.selectedScene == scene ? .white : AoiTheme.Colors.indigo)
+                        .foregroundStyle(viewModel.selectedScene == scene ? .white : AoiTheme.Colors.primaryBlue)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(viewModel.selectedScene == scene ? AoiTheme.Colors.indigo : Color.white.opacity(0.72))
+                                .fill(viewModel.selectedScene == scene ? AoiTheme.Colors.primaryBlue : Color.white.opacity(0.76))
                                 .overlay {
                                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                                         .stroke(Color.white.opacity(0.86), lineWidth: 1)
@@ -125,7 +125,7 @@ struct AIChatView: View {
                     .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 46, height: 46)
-                    .background(AoiTheme.Colors.indigo, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(AoiTheme.Colors.primaryBlue, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
             .disabled(viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .opacity(viewModel.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.45 : 1)
@@ -166,7 +166,7 @@ private struct MessageBubble: View {
                     .padding(.vertical, 12)
                     .background {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(isUser ? AoiTheme.Colors.indigo : Color.white.opacity(0.80))
+                            .fill(isUser ? AoiTheme.Colors.primaryBlue : Color.white.opacity(0.82))
                             .overlay {
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                                     .stroke(isUser ? Color.clear : Color.white.opacity(0.84), lineWidth: 1)
@@ -209,7 +209,7 @@ private struct ThinkingBubble: View {
             HStack(spacing: 5) {
                 ForEach(0..<3, id: \.self) { index in
                     Circle()
-                        .fill(AoiTheme.Colors.indigo.opacity(0.75))
+                        .fill(AoiTheme.Colors.primaryBlue.opacity(0.76))
                         .frame(width: 7, height: 7)
                         .scaleEffect(scale ? 1.2 : 0.72)
                         .animation(

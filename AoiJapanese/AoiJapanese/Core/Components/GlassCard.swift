@@ -14,7 +14,17 @@ struct GlassCard<Content: View>: View {
             .padding(padding)
             .background {
                 RoundedRectangle(cornerRadius: AoiTheme.Layout.cardRadius, style: .continuous)
-                    .fill(AoiTheme.Colors.cardFill)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                AoiTheme.Colors.cardFill,
+                                AoiTheme.Colors.sakuraSoft.opacity(0.22),
+                                AoiTheme.Colors.porcelain.opacity(0.84)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .background {
                         RoundedRectangle(cornerRadius: AoiTheme.Layout.cardRadius, style: .continuous)
                             .fill(.regularMaterial)
@@ -22,6 +32,11 @@ struct GlassCard<Content: View>: View {
                     .overlay {
                         RoundedRectangle(cornerRadius: AoiTheme.Layout.cardRadius, style: .continuous)
                             .stroke(AoiTheme.Colors.cardStroke, lineWidth: 1)
+                    }
+                    .overlay(alignment: .topLeading) {
+                        RoundedRectangle(cornerRadius: AoiTheme.Layout.cardRadius, style: .continuous)
+                            .stroke(AoiTheme.Colors.sakuraSoft.opacity(0.36), lineWidth: 0.8)
+                            .blur(radius: 0.2)
                     }
             }
             .softShadow()

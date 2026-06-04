@@ -13,6 +13,6 @@ struct LevelBadge: View {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(level.gradient)
             }
-            .shadow(color: AoiTheme.Colors.primaryBlue.opacity(0.16), radius: 10, x: 0, y: 6)
+            .shadow(color: AoiTheme.Colors.sakura.opacity(0.24), radius: 11, x: 0, y: 6)
     }
 }

@@ -29,10 +29,10 @@ struct MetricPill: View {
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: AoiTheme.Layout.compactRadius, style: .continuous)
-                .fill(Color.white.opacity(0.70))
+                .fill(AoiTheme.Colors.porcelain.opacity(0.82))
                 .overlay {
                     RoundedRectangle(cornerRadius: AoiTheme.Layout.compactRadius, style: .continuous)
-                        .stroke(Color.white.opacity(0.88), lineWidth: 1)
+                        .stroke(AoiTheme.Colors.sakuraSoft.opacity(0.56), lineWidth: 1)
                 }
         }
     }

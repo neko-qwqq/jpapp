@@ -41,12 +41,12 @@ struct WordsView: View {
                     } label: {
                         Text(level.shortName)
                             .font(AoiTheme.Typography.title(14, weight: .bold))
-                            .foregroundStyle(viewModel.selectedLevel == level ? .white : AoiTheme.Colors.indigo)
+                            .foregroundStyle(viewModel.selectedLevel == level ? .white : AoiTheme.Colors.primaryBlue)
                             .padding(.horizontal, 18)
                             .padding(.vertical, 10)
                             .background {
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(viewModel.selectedLevel == level ? AoiTheme.Colors.indigo : Color.white.opacity(0.72))
+                                    .fill(viewModel.selectedLevel == level ? AoiTheme.Colors.primaryBlue : Color.white.opacity(0.76))
                                     .overlay {
                                         RoundedRectangle(cornerRadius: 8, style: .continuous)
                                             .stroke(Color.white.opacity(0.86), lineWidth: 1)

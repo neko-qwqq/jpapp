@@ -43,7 +43,7 @@ struct CoursesView: View {
                         .foregroundStyle(AoiTheme.Colors.secondaryText)
                     Text("建议今天完成 1 节课")
                         .font(AoiTheme.Typography.title(13, weight: .semibold))
-                        .foregroundStyle(AoiTheme.Colors.indigo)
+                        .foregroundStyle(AoiTheme.Colors.primaryBlue)
                 }
 
                 Spacer()
@@ -70,12 +70,12 @@ struct CoursesView: View {
         } label: {
             Text(title)
                 .font(AoiTheme.Typography.title(14, weight: .bold))
-                .foregroundStyle(viewModel.selectedLevel == level ? .white : AoiTheme.Colors.indigo)
+                .foregroundStyle(viewModel.selectedLevel == level ? .white : AoiTheme.Colors.primaryBlue)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 .background {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(viewModel.selectedLevel == level ? AoiTheme.Colors.indigo : Color.white.opacity(0.72))
+                        .fill(viewModel.selectedLevel == level ? AoiTheme.Colors.primaryBlue : Color.white.opacity(0.76))
                         .overlay {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
                                 .stroke(Color.white.opacity(0.86), lineWidth: 1)
@@ -117,7 +117,7 @@ private struct CourseCard: View {
                     Spacer()
                     Text("\(Int(course.progress * 100))%")
                         .font(AoiTheme.Typography.title(14, weight: .bold))
-                        .foregroundStyle(AoiTheme.Colors.indigo)
+                        .foregroundStyle(AoiTheme.Colors.primaryBlue)
                 }
 
                 VStack(alignment: .leading, spacing: 6) {

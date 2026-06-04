@@ -82,8 +82,8 @@ struct AoiIllustrationMark: View {
                     LinearGradient(
                         colors: [
                             AoiTheme.Colors.porcelain,
-                            AoiTheme.Colors.sakuraSoft.opacity(0.82),
-                            AoiTheme.Colors.softBlue.opacity(0.56)
+                            AoiTheme.Colors.sakuraSoft.opacity(0.92),
+                            AoiTheme.Colors.softBlue.opacity(0.44)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -93,16 +93,23 @@ struct AoiIllustrationMark: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .stroke(Color.white.opacity(0.92), lineWidth: 1)
                 }
+                .overlay(alignment: .topTrailing) {
+                    SakuraPetalMini()
+                        .fill(AoiTheme.Colors.sakura.opacity(0.26))
+                        .frame(width: 14, height: 18)
+                        .rotationEffect(.degrees(24))
+                        .padding(8)
+                }
 
             VStack(spacing: 6) {
                 Image(systemName: symbol)
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(AoiTheme.Colors.indigo)
+                    .foregroundStyle(AoiTheme.Colors.primaryBlue)
 
                 HStack(spacing: 3) {
                     ForEach(0..<3, id: \.self) { index in
                         SakuraPetalMini()
-                            .fill(AoiTheme.Colors.sakura.opacity(0.42))
+                            .fill(AoiTheme.Colors.sakura.opacity(0.50))
                             .frame(width: 9, height: 12)
                             .rotationEffect(.degrees(Double(index) * 28 - 24))
                     }

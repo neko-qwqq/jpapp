@@ -91,10 +91,10 @@ struct HomeView: View {
                         Text("\(viewModel.summary.studiedMinutes)/\(viewModel.summary.targetMinutes) 分钟")
                             .font(AoiTheme.Typography.title(13, weight: .semibold))
                     }
-                    .foregroundStyle(AoiTheme.Colors.indigo)
+                    .foregroundStyle(AoiTheme.Colors.primaryBlue)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(AoiTheme.Colors.softBlue.opacity(0.30), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(AoiTheme.Colors.sakuraSoft.opacity(0.34), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
 
                 Spacer(minLength: 0)
@@ -247,9 +247,9 @@ private struct StudyTimeBars: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    AoiTheme.Colors.indigo,
+                                    AoiTheme.Colors.sakura,
                                     AoiTheme.Colors.primaryBlue,
-                                    AoiTheme.Colors.sakura.opacity(0.82)
+                                    AoiTheme.Colors.softBlue.opacity(0.82)
                                 ],
                                 startPoint: .top,
                                 endPoint: .bottom

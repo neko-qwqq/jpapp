@@ -16,9 +16,9 @@ struct ProgressRing: View {
                 .stroke(
                     LinearGradient(
                         colors: [
-                            AoiTheme.Colors.indigo,
+                            AoiTheme.Colors.sakura,
                             AoiTheme.Colors.primaryBlue,
-                            AoiTheme.Colors.sakura
+                            AoiTheme.Colors.softBlue
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -26,7 +26,7 @@ struct ProgressRing: View {
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .shadow(color: AoiTheme.Colors.primaryBlue.opacity(0.18), radius: 8, x: 0, y: 5)
+                .shadow(color: AoiTheme.Colors.sakura.opacity(0.24), radius: 9, x: 0, y: 5)
 
             VStack(spacing: 1) {
                 Text("\(Int(renderedProgress.clamped(to: 0...1) * 100))%")

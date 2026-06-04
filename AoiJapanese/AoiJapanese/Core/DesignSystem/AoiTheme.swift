@@ -2,24 +2,24 @@ import SwiftUI
 
 enum AoiTheme {
     enum Colors {
-        static let backgroundTop = Color(red: 0.985, green: 0.975, blue: 0.965)
-        static let backgroundMiddle = Color(red: 0.955, green: 0.972, blue: 0.992)
-        static let backgroundBottom = Color(red: 0.988, green: 0.948, blue: 0.958)
-        static let porcelain = Color(red: 0.996, green: 0.992, blue: 0.982)
-        static let washi = Color(red: 0.965, green: 0.948, blue: 0.922)
-        static let primaryBlue = Color(red: 0.20, green: 0.40, blue: 0.72)
-        static let indigo = Color(red: 0.13, green: 0.22, blue: 0.42)
-        static let softBlue = Color(red: 0.72, green: 0.84, blue: 0.96)
-        static let deepText = Color(red: 0.10, green: 0.12, blue: 0.17)
-        static let secondaryText = Color(red: 0.43, green: 0.47, blue: 0.55)
-        static let tertiaryText = Color(red: 0.60, green: 0.62, blue: 0.68)
-        static let sakura = Color(red: 0.96, green: 0.62, blue: 0.70)
-        static let sakuraSoft = Color(red: 1.0, green: 0.86, blue: 0.89)
-        static let matcha = Color(red: 0.47, green: 0.62, blue: 0.48)
-        static let lemon = Color(red: 0.93, green: 0.74, blue: 0.28)
-        static let inkStroke = Color(red: 0.18, green: 0.23, blue: 0.30).opacity(0.08)
-        static let cardFill = Color.white.opacity(0.74)
-        static let cardStroke = Color.white.opacity(0.88)
+        static let backgroundTop = Color(red: 1.00, green: 0.955, blue: 0.972)
+        static let backgroundMiddle = Color(red: 0.995, green: 0.972, blue: 0.990)
+        static let backgroundBottom = Color(red: 0.972, green: 0.952, blue: 1.00)
+        static let porcelain = Color(red: 1.00, green: 0.985, blue: 0.990)
+        static let washi = Color(red: 0.985, green: 0.930, blue: 0.948)
+        static let primaryBlue = Color(red: 0.925, green: 0.330, blue: 0.540)
+        static let indigo = Color(red: 0.365, green: 0.145, blue: 0.335)
+        static let softBlue = Color(red: 0.900, green: 0.805, blue: 0.980)
+        static let deepText = Color(red: 0.165, green: 0.105, blue: 0.165)
+        static let secondaryText = Color(red: 0.500, green: 0.405, blue: 0.500)
+        static let tertiaryText = Color(red: 0.665, green: 0.565, blue: 0.650)
+        static let sakura = Color(red: 1.00, green: 0.465, blue: 0.635)
+        static let sakuraSoft = Color(red: 1.00, green: 0.780, blue: 0.865)
+        static let matcha = Color(red: 0.560, green: 0.680, blue: 0.520)
+        static let lemon = Color(red: 0.960, green: 0.760, blue: 0.330)
+        static let inkStroke = Color(red: 0.420, green: 0.180, blue: 0.330).opacity(0.055)
+        static let cardFill = Color.white.opacity(0.80)
+        static let cardStroke = Color.white.opacity(0.94)
     }
 
     enum Layout {
@@ -31,8 +31,8 @@ enum AoiTheme {
     }
 
     enum Shadow {
-        static let soft = Color(red: 0.20, green: 0.25, blue: 0.34).opacity(0.10)
-        static let lifted = Color(red: 0.16, green: 0.20, blue: 0.28).opacity(0.16)
+        static let soft = Color(red: 0.72, green: 0.28, blue: 0.48).opacity(0.115)
+        static let lifted = Color(red: 0.58, green: 0.20, blue: 0.40).opacity(0.18)
     }
 
     enum Motion {

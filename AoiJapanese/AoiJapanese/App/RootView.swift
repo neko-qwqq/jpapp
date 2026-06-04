@@ -26,7 +26,7 @@ struct RootView: View {
                     LinearGradient(
                         colors: [
                             AoiTheme.Colors.porcelain.opacity(0.0),
-                            AoiTheme.Colors.porcelain.opacity(0.96)
+                            AoiTheme.Colors.porcelain.opacity(0.98)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -167,7 +167,7 @@ private struct AoiTabBar: View {
                 }
                 .overlay {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.white.opacity(0.72), lineWidth: 1)
+                        .stroke(AoiTheme.Colors.sakuraSoft.opacity(0.72), lineWidth: 1)
                 }
         }
         .shadow(color: AoiTheme.Shadow.lifted, radius: 24, x: 0, y: 14)
@@ -182,7 +182,11 @@ private struct AoiTabBar: View {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [AoiTheme.Colors.indigo, AoiTheme.Colors.primaryBlue],
+                                colors: [
+                                    AoiTheme.Colors.sakura,
+                                    AoiTheme.Colors.primaryBlue,
+                                    AoiTheme.Colors.indigo
+                                ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -199,7 +203,7 @@ private struct AoiTabBar: View {
 
             Text(tab.title)
                 .font(AoiTheme.Typography.title(10, weight: .bold))
-                .foregroundStyle(isSelected ? AoiTheme.Colors.indigo : AoiTheme.Colors.tertiaryText)
+                .foregroundStyle(isSelected ? AoiTheme.Colors.primaryBlue : AoiTheme.Colors.tertiaryText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
         }

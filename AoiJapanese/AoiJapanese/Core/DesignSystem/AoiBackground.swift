@@ -14,27 +14,49 @@ struct AoiBackground: View {
         .ignoresSafeArea()
         .overlay {
             WashiTexture()
-                .opacity(0.34)
+                .opacity(0.24)
                 .ignoresSafeArea()
         }
         .overlay(alignment: .top) {
             LinearGradient(
                 colors: [
-                    AoiTheme.Colors.sakuraSoft.opacity(0.46),
-                    AoiTheme.Colors.softBlue.opacity(0.18),
+                    AoiTheme.Colors.sakuraSoft.opacity(0.58),
+                    AoiTheme.Colors.porcelain.opacity(0.44),
+                    AoiTheme.Colors.softBlue.opacity(0.22),
                     .clear
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
+            )
+            .frame(height: 340)
+            .ignoresSafeArea()
+        }
+        .overlay(alignment: .bottom) {
+            LinearGradient(
+                colors: [
+                    .clear,
+                    AoiTheme.Colors.sakuraSoft.opacity(0.26),
+                    AoiTheme.Colors.porcelain.opacity(0.76)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
             )
             .frame(height: 260)
             .ignoresSafeArea()
         }
         .overlay(alignment: .topTrailing) {
             SakuraPetalField()
-                .frame(width: 170, height: 230)
-                .padding(.top, 18)
-                .padding(.trailing, 10)
+                .frame(width: 220, height: 310)
+                .padding(.top, 20)
+                .padding(.trailing, 0)
+        }
+        .overlay(alignment: .topLeading) {
+            SakuraPetalField()
+                .scaleEffect(x: -0.72, y: 0.72)
+                .frame(width: 170, height: 240)
+                .padding(.top, 130)
+                .padding(.leading, -18)
+                .opacity(0.62)
         }
     }
 }
@@ -60,18 +82,20 @@ private struct WashiTexture: View {
 
 private struct SakuraPetalField: View {
     private let petals: [(x: CGFloat, y: CGFloat, rotation: Double, scale: CGFloat)] = [
-        (24, 12, -18, 0.72),
-        (112, 34, 12, 0.58),
+        (24, 12, -18, 0.74),
+        (112, 34, 12, 0.60),
         (62, 82, 34, 0.42),
-        (136, 128, -28, 0.48),
-        (34, 176, 22, 0.38)
+        (162, 112, -28, 0.52),
+        (34, 176, 22, 0.40),
+        (132, 214, 46, 0.34),
+        (196, 256, -12, 0.30)
     ]
 
     var body: some View {
         ZStack {
             ForEach(Array(petals.enumerated()), id: \.offset) { _, petal in
                 SakuraPetal()
-                    .fill(AoiTheme.Colors.sakura.opacity(0.16))
+                    .fill(AoiTheme.Colors.sakura.opacity(0.22))
                     .frame(width: 30 * petal.scale, height: 44 * petal.scale)
                     .rotationEffect(.degrees(petal.rotation))
                     .position(x: petal.x, y: petal.y)
