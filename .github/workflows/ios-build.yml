@@ -57,3 +57,105 @@ jobs:
         with:
           name: xcodebuild-log
           path: xcodebuild.log
+
+  screenshot:
+    name: Build and Screenshot AoiJapanese
+    runs-on: macos-15
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Build Simulator App
+        working-directory: AoiJapanese
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project AoiJapanese.xcodeproj \
+            -target AoiJapanese \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath ../DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee ../xcodebuild-simulator.log
+
+      - name: Boot Simulator and Capture Screenshot
+        run: |
+          set -euo pipefail
+
+          mkdir -p screenshots artifacts
+
+          UDID="$(
+            xcrun simctl list devices available -j | /usr/bin/python3 -c '
+          import json
+          import sys
+
+          data = json.load(sys.stdin)
+          preferred = ("iPhone 16 Pro", "iPhone 16", "iPhone 15 Pro", "iPhone 15")
+          devices = []
+
+          for runtime_devices in data.get("devices", {}).values():
+              for device in runtime_devices:
+                  if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
+                      devices.append(device)
+
+          for name in preferred:
+              for device in devices:
+                  if device.get("name") == name:
+                      print(device["udid"])
+                      raise SystemExit(0)
+
+          if devices:
+              print(devices[0]["udid"])
+              raise SystemExit(0)
+
+          raise SystemExit(1)
+          '
+          )"
+
+          if [ -z "$UDID" ]; then
+            echo "No suitable iOS simulator found."
+            xcrun simctl list devices available
+            exit 1
+          fi
+
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+
+          APP_PATH="$(find DerivedData/Build/Products/Debug-iphonesimulator -name 'AoiJapanese.app' -type d | head -n 1)"
+          if [ -z "$APP_PATH" ]; then
+            echo "AoiJapanese.app was not found."
+            find DerivedData/Build/Products -maxdepth 4 -type d
+            exit 1
+          fi
+
+          cp -R "$APP_PATH" artifacts/AoiJapanese.app
+          xcrun simctl install "$UDID" "$APP_PATH"
+          xcrun simctl launch "$UDID" com.example.AoiJapanese
+          sleep 4
+
+          xcrun simctl io "$UDID" screenshot screenshots/home.png
+          xcrun simctl shutdown "$UDID"
+
+      - name: Upload Simulator App
+        uses: actions/upload-artifact@v4
+        with:
+          name: AoiJapanese-simulator-app
+          path: artifacts/AoiJapanese.app
+
+      - name: Upload Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: AoiJapanese-screenshots
+          path: screenshots
+
+      - name: Upload simulator build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-simulator-log
+          path: xcodebuild-simulator.log
