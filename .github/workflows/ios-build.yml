@@ -79,8 +79,8 @@ jobs:
             -target AoiJapanese \
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath ../DerivedData \
             CODE_SIGNING_ALLOWED=NO \
+            CONFIGURATION_BUILD_DIR="$PWD/../BuildProducts" \
             build 2>&1 | tee ../xcodebuild-simulator.log
 
       - name: Boot Simulator and Capture Screenshot
@@ -126,10 +126,10 @@ jobs:
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
 
-          APP_PATH="$(find DerivedData/Build/Products/Debug-iphonesimulator -name 'AoiJapanese.app' -type d | head -n 1)"
+          APP_PATH="$(find BuildProducts -name 'AoiJapanese.app' -type d | head -n 1)"
           if [ -z "$APP_PATH" ]; then
             echo "AoiJapanese.app was not found."
-            find DerivedData/Build/Products -maxdepth 4 -type d
+            find BuildProducts -maxdepth 4 -type d
             exit 1
           fi
 
