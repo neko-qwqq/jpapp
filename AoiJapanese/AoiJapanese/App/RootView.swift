@@ -9,24 +9,28 @@ struct RootView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             AoiBackground()
 
             activeTabView
                 .transition(.opacity.combined(with: .scale(scale: 0.985)))
-
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AoiBackground())
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             AoiTabBar(selectedTab: $selectedTab)
                 .padding(.horizontal, 14)
                 .padding(.bottom, 8)
-
+                .opacity(isShowingLaunch ? 0 : 1)
+        }
+        .overlay {
             if isShowingLaunch {
                 AoiLaunchView()
+                    .ignoresSafeArea()
                     .transition(.opacity.combined(with: .scale(scale: 1.015)))
                     .zIndex(3)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AoiBackground())
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.45) {
                 withAnimation(.easeInOut(duration: 0.48)) {
