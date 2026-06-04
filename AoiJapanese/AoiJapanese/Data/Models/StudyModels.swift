@@ -75,30 +75,30 @@ enum LessonType: String, CaseIterable, Hashable {
     var title: String {
         switch self {
         case .kana:
-            "假名"
+            return "假名"
         case .vocabulary:
-            "单词"
+            return "单词"
         case .grammar:
-            "语法"
+            return "语法"
         case .listening:
-            "听力"
+            return "听力"
         case .aiPractice:
-            "AI"
+            return "AI"
         }
     }
 
     var icon: String {
         switch self {
         case .kana:
-            "character.textbox"
+            return "character.textbox"
         case .vocabulary:
-            "text.book.closed.fill"
+            return "text.book.closed.fill"
         case .grammar:
-            "text.alignleft"
+            return "text.alignleft"
         case .listening:
-            "headphones"
+            return "headphones"
         case .aiPractice:
-            "sparkles"
+            return "sparkles"
         }
     }
 }

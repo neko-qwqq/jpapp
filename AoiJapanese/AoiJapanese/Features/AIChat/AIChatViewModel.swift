@@ -64,22 +64,22 @@ enum AIPracticeScene: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .selfIntro:
-            "自我介绍"
+            return "自我介绍"
         case .convenienceStore:
-            "便利店"
+            return "便利店"
         case .cafe:
-            "咖啡店"
+            return "咖啡店"
         }
     }
 
     var icon: String {
         switch self {
         case .selfIntro:
-            "person.wave.2.fill"
+            return "person.wave.2.fill"
         case .convenienceStore:
-            "basket.fill"
+            return "basket.fill"
         case .cafe:
-            "cup.and.saucer.fill"
+            return "cup.and.saucer.fill"
         }
     }
 }

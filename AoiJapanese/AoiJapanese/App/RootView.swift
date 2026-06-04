@@ -57,45 +57,45 @@ enum AppTab: Hashable {
     var title: String {
         switch self {
         case .home:
-            "首页"
+            return "首页"
         case .words:
-            "单词"
+            return "单词"
         case .courses:
-            "课程"
+            return "课程"
         case .ai:
-            "AI 对话"
+            return "AI 对话"
         case .profile:
-            "我的"
+            return "我的"
         }
     }
 
     var icon: String {
         switch self {
         case .home:
-            "house.fill"
+            return "house.fill"
         case .words:
-            "character.book.closed.fill"
+            return "character.book.closed.fill"
         case .courses:
-            "map.fill"
+            return "map.fill"
         case .ai:
-            "sparkles"
+            return "sparkles"
         case .profile:
-            "person.crop.circle.fill"
+            return "person.crop.circle.fill"
         }
     }
 
     var selectedIcon: String {
         switch self {
         case .home:
-            "house.fill"
+            return "house.fill"
         case .words:
-            "character.book.closed.fill"
+            return "character.book.closed.fill"
         case .courses:
-            "map.fill"
+            return "map.fill"
         case .ai:
-            "sparkles"
+            return "sparkles"
         case .profile:
-            "person.crop.circle.fill"
+            return "person.crop.circle.fill"
         }
     }
 }

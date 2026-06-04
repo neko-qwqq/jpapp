@@ -24,13 +24,13 @@ final class HomeViewModel {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
         case 5..<11:
-            "早上好"
+            return "早上好"
         case 11..<17:
-            "今天也慢慢来"
+            return "今天也慢慢来"
         case 17..<22:
-            "晚上好"
+            return "晚上好"
         default:
-            "夜深了，轻轻复习一下"
+            return "夜深了，轻轻复习一下"
         }
     }
 
