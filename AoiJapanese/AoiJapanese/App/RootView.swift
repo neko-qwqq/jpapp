@@ -1,8 +1,12 @@
 import SwiftUI
 
 struct RootView: View {
-    @State private var selectedTab: AppTab = .home
+    @State private var selectedTab: AppTab
     @State private var isShowingLaunch = true
+
+    init(initialTab: AppTab = AppTab.initialFromLaunchArguments()) {
+        _selectedTab = State(initialValue: initialTab)
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -49,7 +53,7 @@ struct RootView: View {
     }
 }
 
-enum AppTab: Hashable {
+enum AppTab: String, Hashable {
     case home
     case words
     case courses
@@ -99,6 +103,21 @@ enum AppTab: Hashable {
         case .profile:
             return "person.crop.circle.fill"
         }
+    }
+
+    static func initialFromLaunchArguments() -> AppTab {
+        let arguments = ProcessInfo.processInfo.arguments
+
+        guard let markerIndex = arguments.firstIndex(of: "--aoi-initial-tab") else {
+            return .home
+        }
+
+        let valueIndex = arguments.index(after: markerIndex)
+        guard valueIndex < arguments.endIndex else {
+            return .home
+        }
+
+        return AppTab(rawValue: arguments[valueIndex]) ?? .home
     }
 }
 
