@@ -10,6 +10,7 @@ import { handleSpeakingAnswer, handleSpeakingStart } from "./routes/speakingSimu
 import { handleFriendChat } from "./routes/friendChat";
 import { handleDailyPractice } from "./routes/dailyPractice";
 import { handleTTS } from "./routes/tts";
+import { handleRealtimeSession } from "./routes/realtimeSession";
 
 type RouteHandler = (request: Request, ctx: ReturnType<typeof createRequestContext>) => Promise<Response>;
 
@@ -22,7 +23,8 @@ const routes: Record<string, RouteHandler> = {
   "POST /v1/ai/jlpt-speaking-simulation/answer": handleSpeakingAnswer,
   "POST /v1/ai/friend-chat": handleFriendChat,
   "POST /v1/ai/daily-practice": handleDailyPractice,
-  "POST /v1/ai/tts": handleTTS
+  "POST /v1/ai/tts": handleTTS,
+  "POST /v1/ai/realtime/session": handleRealtimeSession
 };
 
 export default {

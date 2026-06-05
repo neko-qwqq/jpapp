@@ -9,7 +9,8 @@ const dailyLimits: Record<string, number> = {
   "/v1/ai/jlpt-speaking-simulation/answer": 100,
   "/v1/ai/friend-chat": 100,
   "/v1/ai/daily-practice": 20,
-  "/v1/ai/tts": 100
+  "/v1/ai/tts": 100,
+  "/v1/ai/realtime/session": 20
 };
 
 export async function enforceDailyQuota(ctx: RequestContext, route: string): Promise<void> {

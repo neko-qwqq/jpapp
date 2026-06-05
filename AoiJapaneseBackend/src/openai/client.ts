@@ -104,6 +104,54 @@ export async function synthesizeSpeech(
   });
 }
 
+export interface RealtimeClientSecretOptions {
+  instructions: string;
+  voice: string;
+  safetyIdentifier: string;
+}
+
+export interface RealtimeClientSecretResponse {
+  value: string;
+  expires_at?: number;
+  session?: {
+    id?: string;
+    model?: string;
+  };
+}
+
+export async function createRealtimeClientSecret(
+  env: Env,
+  options: RealtimeClientSecretOptions
+): Promise<RealtimeClientSecretResponse> {
+  const response = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+      "OpenAI-Safety-Identifier": options.safetyIdentifier
+    },
+    body: JSON.stringify({
+      session: {
+        type: "realtime",
+        model: env.OPENAI_REALTIME_MODEL,
+        instructions: options.instructions,
+        audio: {
+          output: {
+            voice: options.voice
+          }
+        }
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`OpenAI Realtime client secret failed: ${response.status} ${errorText}`);
+  }
+
+  return await response.json() as RealtimeClientSecretResponse;
+}
+
 function extractOutputText(data: { output_text?: string; output?: Array<Record<string, unknown>> }): string {
   if (typeof data.output_text === "string") return data.output_text;
 

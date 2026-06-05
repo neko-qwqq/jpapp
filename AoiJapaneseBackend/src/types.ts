@@ -16,6 +16,7 @@ export interface Env {
   OPENAI_CLASSIFIER_MODEL: string;
   OPENAI_TRANSCRIBE_MODEL: string;
   OPENAI_TTS_MODEL: string;
+  OPENAI_REALTIME_MODEL: string;
   AI_MEMORY_KV?: KVNamespace;
   AI_LOGS_DB?: D1Database;
 }

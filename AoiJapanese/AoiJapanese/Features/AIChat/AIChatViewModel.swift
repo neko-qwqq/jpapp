@@ -14,6 +14,11 @@ final class AIChatViewModel {
     var isThinking: Bool
     var n3SessionCount: Int
     var latestN3Score: Int
+    var realtimeStatus: RealtimePracticeStatus
+    var realtimeTranscript: [RealtimeTranscriptLine]
+    var realtimeLatencyMs: Int
+    var realtimeInterruptions: Int
+    var realtimeVoice: RealtimeVoiceProfile
 
     let n3Prompt = N3SimulationPrompt(
         title: "面试题 01",
@@ -55,13 +60,43 @@ final class AIChatViewModel {
         N3ScoringMetric(title: "自然度", score: 81, note: "内容像真实生活经历，结尾可以更有余韵。")
     ]
 
+    let realtimeChecklist: [RealtimeCapability] = [
+        RealtimeCapability(icon: "bolt.fill", title: "低延迟", detail: "目标 300ms 内开始回应"),
+        RealtimeCapability(icon: "hand.raised.fill", title: "可打断", detail: "用户插话时立即停止展开"),
+        RealtimeCapability(icon: "waveform", title: "语音陪练", detail: "日语回复 + 中文短解释"),
+        RealtimeCapability(icon: "lock.shield.fill", title: "安全连接", detail: "后端签发临时 client secret")
+    ]
+
+    let realtimeScript: [RealtimeTranscriptLine] = [
+        RealtimeTranscriptLine(
+            role: .teacher,
+            text: "こんにちは。今日は声で話しましょう。",
+            helperText: "中文：我们用语音练习，先短句开始。"
+        ),
+        RealtimeTranscriptLine(
+            role: .user,
+            text: "最近、日本語を話す練習をしています。",
+            helperText: "用户语音转写"
+        ),
+        RealtimeTranscriptLine(
+            role: .teacher,
+            text: "いいですね。では、どうして練習を始めたんですか。",
+            helperText: "实时追问：原因表达"
+        )
+    ]
+
     init(
         messages: [AIMessage]? = nil,
         inputText: String = "",
         selectedScene: AIPracticeScene = .n3Sprint,
         isThinking: Bool = false,
         n3SessionCount: Int = 3,
-        latestN3Score: Int = 76
+        latestN3Score: Int = 76,
+        realtimeStatus: RealtimePracticeStatus = .idle,
+        realtimeTranscript: [RealtimeTranscriptLine] = [],
+        realtimeLatencyMs: Int = 0,
+        realtimeInterruptions: Int = 0,
+        realtimeVoice: RealtimeVoiceProfile = .mika
     ) {
         self.selectedScene = selectedScene
         self.messages = messages ?? AIChatViewModel.initialMessages(for: selectedScene)
@@ -69,6 +104,11 @@ final class AIChatViewModel {
         self.isThinking = isThinking
         self.n3SessionCount = n3SessionCount
         self.latestN3Score = latestN3Score
+        self.realtimeStatus = realtimeStatus
+        self.realtimeTranscript = realtimeTranscript
+        self.realtimeLatencyMs = realtimeLatencyMs
+        self.realtimeInterruptions = realtimeInterruptions
+        self.realtimeVoice = realtimeVoice
     }
 
     func sendCurrentMessage() {
@@ -121,6 +161,67 @@ final class AIChatViewModel {
         )
     }
 
+    func startRealtimePractice() {
+        selectedScene = .realtime
+        realtimeStatus = .connecting
+        realtimeTranscript = []
+        realtimeLatencyMs = 0
+
+        Task {
+            try? await Task.sleep(for: .milliseconds(480))
+            await MainActor.run {
+                realtimeStatus = .listening
+                realtimeLatencyMs = 238
+                realtimeTranscript = [realtimeScript[0]]
+            }
+
+            try? await Task.sleep(for: .milliseconds(720))
+            await MainActor.run {
+                realtimeStatus = .speaking
+                realtimeTranscript.append(realtimeScript[1])
+                realtimeTranscript.append(realtimeScript[2])
+            }
+
+            try? await Task.sleep(for: .milliseconds(680))
+            await MainActor.run {
+                realtimeStatus = .listening
+            }
+        }
+    }
+
+    func interruptRealtimeTeacher() {
+        guard realtimeStatus == .speaking || realtimeStatus == .listening else { return }
+        realtimeInterruptions += 1
+        realtimeStatus = .interrupted
+        realtimeLatencyMs = 164
+        realtimeTranscript.append(
+            RealtimeTranscriptLine(
+                role: .user,
+                text: "先生、もう一度ゆっくりお願いします。",
+                helperText: "用户实时打断"
+            )
+        )
+        realtimeTranscript.append(
+            RealtimeTranscriptLine(
+                role: .teacher,
+                text: "もちろんです。ゆっくり言いますね。",
+                helperText: "已中断上一段回复，重新慢速说明。"
+            )
+        )
+
+        Task {
+            try? await Task.sleep(for: .milliseconds(560))
+            await MainActor.run {
+                realtimeStatus = .listening
+            }
+        }
+    }
+
+    func stopRealtimePractice() {
+        realtimeStatus = .idle
+        realtimeLatencyMs = 0
+    }
+
     private func appendAssistantMessage(_ text: String, helperText: String? = nil) {
         messages.append(AIMessage(role: .assistant, text: text, helperText: helperText))
     }
@@ -168,6 +269,8 @@ final class AIChatViewModel {
 
     private func helperText(for scene: AIPracticeScene) -> String {
         switch scene {
+        case .realtime:
+            return "Realtime 会用于低延迟语音陪练，支持打断和短反馈。"
         case .n3Sprint:
             return "AI 会用鼓励式反馈指出语法、结构和发音节奏问题。"
         case .selfIntro:
@@ -181,6 +284,14 @@ final class AIChatViewModel {
 
     private static func initialMessages(for scene: AIPracticeScene) -> [AIMessage] {
         switch scene {
+        case .realtime:
+            return [
+                AIMessage(
+                    role: .assistant,
+                    text: "Realtime 语音老师准备好了。\n\n这里会先向你的后端请求临时 client secret，再建立低延迟语音会话。当前界面已保留连接状态、实时打断和语音反馈区域。",
+                    helperText: "标准 OpenAI API Key 不会进入 iOS 客户端。"
+                )
+            ]
         case .n3Sprint:
             return [
                 AIMessage(
@@ -218,6 +329,7 @@ final class AIChatViewModel {
 }
 
 enum AIPracticeScene: String, CaseIterable, Identifiable, Equatable {
+    case realtime
     case n3Sprint
     case selfIntro
     case convenienceStore
@@ -227,6 +339,8 @@ enum AIPracticeScene: String, CaseIterable, Identifiable, Equatable {
 
     var title: String {
         switch self {
+        case .realtime:
+            return "Realtime"
         case .n3Sprint:
             return "N3 冲刺"
         case .selfIntro:
@@ -240,6 +354,8 @@ enum AIPracticeScene: String, CaseIterable, Identifiable, Equatable {
 
     var subtitle: String {
         switch self {
+        case .realtime:
+            return "低延迟语音陪练、实时打断和 AI 语音老师"
         case .n3Sprint:
             return "JLPT 风格口语模拟、弱点报告和发音节奏反馈"
         case .selfIntro:
@@ -253,6 +369,8 @@ enum AIPracticeScene: String, CaseIterable, Identifiable, Equatable {
 
     var icon: String {
         switch self {
+        case .realtime:
+            return "waveform.and.mic"
         case .n3Sprint:
             return "target"
         case .selfIntro:
@@ -261,6 +379,104 @@ enum AIPracticeScene: String, CaseIterable, Identifiable, Equatable {
             return "basket.fill"
         case .cafe:
             return "cup.and.saucer.fill"
+        }
+    }
+}
+
+enum RealtimePracticeStatus: Equatable {
+    case idle
+    case connecting
+    case listening
+    case speaking
+    case interrupted
+
+    var title: String {
+        switch self {
+        case .idle:
+            return "未连接"
+        case .connecting:
+            return "连接中"
+        case .listening:
+            return "正在听你说"
+        case .speaking:
+            return "老师回应中"
+        case .interrupted:
+            return "已实时打断"
+        }
+    }
+
+    var actionTitle: String {
+        switch self {
+        case .idle:
+            return "开始语音"
+        case .connecting:
+            return "连接中"
+        case .listening:
+            return "结束"
+        case .speaking:
+            return "打断"
+        case .interrupted:
+            return "继续"
+        }
+    }
+}
+
+enum RealtimeTranscriptRole: Hashable {
+    case user
+    case teacher
+}
+
+struct RealtimeTranscriptLine: Identifiable, Hashable {
+    let id = UUID()
+    let role: RealtimeTranscriptRole
+    let text: String
+    let helperText: String
+}
+
+struct RealtimeCapability: Identifiable, Hashable {
+    let id = UUID()
+    let icon: String
+    let title: String
+    let detail: String
+}
+
+enum RealtimeVoiceProfile: String, CaseIterable, Identifiable {
+    case mika
+    case aoi
+    case haru
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .mika:
+            return "Mika"
+        case .aoi:
+            return "Aoi"
+        case .haru:
+            return "Haru"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .mika:
+            return "发音教练"
+        case .aoi:
+            return "温柔老师"
+        case .haru:
+            return "日本朋友"
+        }
+    }
+
+    var backendVoice: String {
+        switch self {
+        case .mika:
+            return "marin"
+        case .aoi:
+            return "sage"
+        case .haru:
+            return "coral"
         }
     }
 }

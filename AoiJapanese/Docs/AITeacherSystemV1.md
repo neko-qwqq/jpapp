@@ -461,6 +461,49 @@ audio/mpeg
 
 UI 必须标注：声音由 AI 生成。
 
+### 4.9 Realtime 语音会话
+
+```http
+POST /v1/ai/realtime/session
+```
+
+用途：
+
+```text
+由后端向 OpenAI Realtime API 签发临时 client secret。
+iOS 客户端只能使用临时 client secret 建立 Realtime 连接。
+标准 OpenAI API Key 只能保存在后端。
+```
+
+Request:
+
+```json
+{
+  "level": "n3",
+  "voice": "marin",
+  "mode": "n3Sprint"
+}
+```
+
+Response:
+
+```json
+{
+  "realtime": {
+    "clientSecret": "ek_...",
+    "expiresAt": 1780000000,
+    "model": "gpt-realtime-2",
+    "sessionId": "sess_...",
+    "connectionUrl": "https://api.openai.com/v1/realtime/calls",
+    "eventChannel": "oai-events"
+  },
+  "voice": "marin",
+  "mode": "n3Sprint",
+  "level": "n3",
+  "noticeZh": "这是 AI 生成语音。客户端应使用临时 client secret 建立 Realtime 连接。"
+}
+```
+
 ## 5. Prompt 设计
 
 Prompt 分层：
@@ -904,6 +947,7 @@ AoiJapaneseBackend/
   src/routes/friendChat.ts
   src/routes/dailyPractice.ts
   src/routes/tts.ts
+  src/routes/realtimeSession.ts
 ```
 
 ## 12. 开发顺序

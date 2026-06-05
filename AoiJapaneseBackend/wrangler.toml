@@ -8,6 +8,7 @@ OPENAI_HIGH_QUALITY_MODEL = "gpt-4.1"
 OPENAI_CLASSIFIER_MODEL = "gpt-4.1-nano"
 OPENAI_TRANSCRIBE_MODEL = "gpt-4o-mini-transcribe"
 OPENAI_TTS_MODEL = "gpt-4o-mini-tts"
+OPENAI_REALTIME_MODEL = "gpt-realtime-2"
 
 [[kv_namespaces]]
 binding = "AI_MEMORY_KV"
