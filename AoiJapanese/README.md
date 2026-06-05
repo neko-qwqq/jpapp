@@ -25,6 +25,20 @@
 Docs/TestFlightDeployment.md
 ```
 
+## 手机使用方案
+
+不想购买 Apple Developer Program 时，优先使用 PWA：
+
+```text
+Docs/PWADeployment.md
+```
+
+原生 App 侧载备用方案：
+
+```text
+Docs/Sideloading.md
+```
+
 ## 当前功能
 
 - 首页：今日学习进度、JLPT 等级、连续打卡、今日单词、今日语法、学习时间统计、AI 学习助手入口

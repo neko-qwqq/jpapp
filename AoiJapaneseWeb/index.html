@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f15f91" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Aoi Japanese" />
+    <title>Aoi Japanese</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./assets/icon.svg" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="sakura-field" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Aoi Japanese</p>
+          <h1 id="screen-title">今日学习</h1>
+        </div>
+        <button class="icon-button" id="install-button" type="button" aria-label="安装到主屏幕">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M5 21h14" />
+          </svg>
+        </button>
+      </header>
+
+      <main class="screen-stack">
+        <section class="screen is-active" data-screen="home" aria-labelledby="home-title">
+          <div class="hero-panel">
+            <div class="hero-copy">
+              <p class="eyebrow">今日目标</p>
+              <h2 id="home-title">15 分钟，完成一轮日语输出</h2>
+              <p>当前等级 N5，目标 N3。今天先把一句话说自然。</p>
+            </div>
+            <div class="progress-ring" aria-label="今日进度 68%">
+              <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="48" class="ring-bg"></circle>
+                <circle cx="60" cy="60" r="48" class="ring-value" style="--progress: 68"></circle>
+              </svg>
+              <strong>68%</strong>
+            </div>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card">
+              <span>连续</span>
+              <strong id="streak-days">12 天</strong>
+            </article>
+            <article class="metric-card">
+              <span>单词</span>
+              <strong>84 个</strong>
+            </article>
+            <article class="metric-card">
+              <span>AI 练习</span>
+              <strong id="ai-count">3 次</strong>
+            </article>
+          </div>
+
+          <section class="section-block">
+            <div class="section-heading">
+              <h3>今日练习</h3>
+              <button class="text-button" data-action="refresh-plan" type="button">换一组</button>
+            </div>
+            <div class="practice-list" id="daily-practice-list"></div>
+          </section>
+
+          <section class="section-block">
+            <div class="section-heading">
+              <h3>今日一句</h3>
+            </div>
+            <article class="phrase-card">
+              <div>
+                <p class="jp-text">最近、日本語を話す練習をしています。</p>
+                <p class="kana-text">さいきん、にほんごを はなす れんしゅうを しています。</p>
+                <p class="zh-text">最近我在练习说日语。</p>
+              </div>
+              <button class="round-button" data-speak="最近、日本語を話す練習をしています。" type="button" aria-label="播放">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 9v6h4l5 4V5L9 9H5Zm12.5-.5a5 5 0 0 1 0 7" />
+                </svg>
+              </button>
+            </article>
+          </section>
+        </section>
+
+        <section class="screen" data-screen="chat" aria-labelledby="chat-title">
+          <section class="teacher-panel">
+            <div class="teacher-avatar" aria-hidden="true">あ</div>
+            <div>
+              <p class="eyebrow">Aoi Sensei</p>
+              <h2 id="chat-title">AI 日语老师</h2>
+              <p>日语回复、中文解释、鼓励式纠错。</p>
+            </div>
+          </section>
+
+          <div class="scene-row" role="tablist" aria-label="练习场景">
+            <button class="scene-chip is-selected" data-scene="teacher" type="button">老师</button>
+            <button class="scene-chip" data-scene="friend" type="button">Haru</button>
+            <button class="scene-chip" data-scene="cafe" type="button">咖啡店</button>
+            <button class="scene-chip" data-scene="store" type="button">便利店</button>
+          </div>
+
+          <div class="chat-log" id="chat-log" aria-live="polite"></div>
+
+          <form class="composer" id="chat-form">
+            <button class="icon-button secondary" id="voice-input-button" type="button" aria-label="语音输入">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm7 8a7 7 0 0 1-14 0m7 7v3m-4 0h8" />
+              </svg>
+            </button>
+            <textarea id="chat-input" rows="1" placeholder="输入日语，例如：水をください"></textarea>
+            <button class="send-button" type="submit" aria-label="发送">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m4 12 16-8-5 16-3-7-8-1Z" />
+              </svg>
+            </button>
+          </form>
+        </section>
+
+        <section class="screen" data-screen="n3" aria-labelledby="n3-title">
+          <section class="hero-panel n3-panel">
+            <div class="hero-copy">
+              <p class="eyebrow">N3 Sprint</p>
+              <h2 id="n3-title">JLPT 风格口语冲刺</h2>
+              <p>App 内原创训练，不是官方 JLPT 口语考试。</p>
+            </div>
+            <div class="score-badge">
+              <span>Score</span>
+              <strong id="n3-score">76</strong>
+            </div>
+          </section>
+
+          <section class="section-block">
+            <div class="section-heading">
+              <h3>模拟题</h3>
+              <button class="text-button" data-action="sample-answer" type="button">填入示范</button>
+            </div>
+            <article class="prompt-card">
+              <span>面试题 01</span>
+              <p class="jp-text">最近、生活の中で少し変えた習慣について話してください。</p>
+              <p class="zh-text">请用 45 秒左右说明最近改变的一个生活习惯，并说出原因和结果。</p>
+              <div class="pattern-line">
+                <span>〜ようにしています</span>
+                <span>〜きっかけで</span>
+                <span>その結果</span>
+              </div>
+            </article>
+          </section>
+
+          <section class="section-block">
+            <div class="section-heading">
+              <h3>弱点报告</h3>
+              <button class="text-button" data-action="generate-report" type="button">生成</button>
+            </div>
+            <div class="weakness-list" id="weakness-list"></div>
+          </section>
+
+          <section class="section-block">
+            <div class="section-heading">
+              <h3>回答练习</h3>
+            </div>
+            <textarea class="n3-answer" id="n3-answer" rows="5" placeholder="ここに日本語で答えてみましょう"></textarea>
+            <button class="primary-button" data-action="score-n3" type="button">提交回答</button>
+            <article class="feedback-card" id="n3-feedback"></article>
+          </section>
+        </section>
+
+        <section class="screen" data-screen="voice" aria-labelledby="voice-title">
+          <section class="voice-hero">
+            <div class="voice-orb" id="voice-orb" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <p class="eyebrow">Realtime</p>
+            <h2 id="voice-title">语音陪练</h2>
+            <p id="voice-status">未连接</p>
+            <div class="voice-actions">
+              <button class="primary-button" id="voice-start-button" type="button">开始</button>
+              <button class="ghost-button" id="voice-interrupt-button" type="button">打断</button>
+            </div>
+          </section>
+
+          <div class="metric-grid voice-metrics">
+            <article class="metric-card">
+              <span>延迟</span>
+              <strong id="latency-value">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>打断</span>
+              <strong id="interrupt-value">0</strong>
+            </article>
+            <article class="metric-card">
+              <span>模式</span>
+              <strong>Mock</strong>
+            </article>
+          </div>
+
+          <section class="section-block">
+            <div class="section-heading">
+              <h3>实时转写</h3>
+            </div>
+            <div class="transcript-list" id="voice-transcript"></div>
+          </section>
+
+          <section class="notice-card">
+            <strong>连接方案</strong>
+            <p>正式接入时，PWA 调用你的 Worker 后端获取 Realtime 临时 client secret，再连接 OpenAI。标准 API Key 不进入前端。</p>
+          </section>
+        </section>
+
+        <section class="screen" data-screen="profile" aria-labelledby="profile-title">
+          <section class="teacher-panel">
+            <div class="teacher-avatar profile-avatar" aria-hidden="true">青</div>
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h2 id="profile-title">学习设置</h2>
+              <p>数据会保存在当前浏览器。</p>
+            </div>
+          </section>
+
+          <section class="settings-panel">
+            <label>
+              <span>后端 API Base URL</span>
+              <input id="api-base-url" type="url" placeholder="https://your-worker.example.workers.dev" />
+            </label>
+            <button class="primary-button" data-action="save-settings" type="button">保存设置</button>
+          </section>
+
+          <section class="section-block">
+            <div class="section-heading">
+              <h3>成就</h3>
+            </div>
+            <div class="achievement-grid">
+              <article><strong>7</strong><span>连续学习</span></article>
+              <article><strong>50</strong><span>词汇掌握</span></article>
+              <article><strong>N3</strong><span>目标等级</span></article>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <nav class="tabbar" aria-label="主导航">
+        <button class="tab-item is-active" data-target="home" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4v-9Z" /></svg>
+          <span>首页</span>
+        </button>
+        <button class="tab-item" data-target="chat" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14v10H8l-3 3V6Z" /></svg>
+          <span>AI</span>
+        </button>
+        <button class="tab-item" data-target="n3" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /></svg>
+          <span>N3</span>
+        </button>
+        <button class="tab-item" data-target="voice" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h2m3 6V6m4 14V4m4 14V6m3 6h-2" /></svg>
+          <span>语音</span>
+        </button>
+        <button class="tab-item" data-target="profile" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0H5Z" /></svg>
+          <span>我的</span>
+        </button>
+      </nav>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

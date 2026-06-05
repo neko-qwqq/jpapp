@@ -1,0 +1,19 @@
+{
+  "name": "Aoi Japanese",
+  "short_name": "Aoi",
+  "description": "AI 日语老师 PWA",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff9fc",
+  "theme_color": "#ec5f91",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

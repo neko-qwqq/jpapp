@@ -1,0 +1,71 @@
+name: iOS Sideload IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      bundle_id:
+        description: "Bundle ID used before local sideload signing"
+        required: true
+        default: "com.nekoqwqq.aoijapanese"
+
+jobs:
+  build:
+    name: Build Unsigned IPA for Sideloading
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Show Xcode Version
+        run: xcodebuild -version
+
+      - name: Build unsigned device app
+        working-directory: AoiJapanese
+        run: |
+          set -o pipefail
+
+          xcodebuild \
+            -project AoiJapanese.xcodeproj \
+            -target AoiJapanese \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PRODUCT_BUNDLE_IDENTIFIER="${{ inputs.bundle_id }}" \
+            CONFIGURATION_BUILD_DIR="$PWD/../BuildProductsSideload" \
+            build 2>&1 | tee ../xcodebuild-sideload.log
+
+      - name: Package unsigned IPA
+        run: |
+          set -euo pipefail
+
+          APP_PATH="$(find BuildProductsSideload -name 'AoiJapanese.app' -type d | head -n 1)"
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::AoiJapanese.app was not found."
+            find BuildProductsSideload -maxdepth 4 -type d || true
+            exit 1
+          fi
+
+          rm -rf Payload AoiJapanese-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/AoiJapanese.app
+          /usr/bin/zip -qry AoiJapanese-unsigned.ipa Payload
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: AoiJapanese-unsigned-sideload-IPA
+          path: AoiJapanese-unsigned.ipa
+
+      - name: Upload sideload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-sideload-log
+          path: xcodebuild-sideload.log
