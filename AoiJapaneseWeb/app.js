@@ -457,7 +457,7 @@ const levels = {
 };
 
 const screenTitles = {
-  home: "今日",
+  home: "练习",
   kana: "五十音",
   n5: "N5",
   n4: "N4",
@@ -479,6 +479,7 @@ const defaultState = {
 let state = loadState();
 let deferredInstallPrompt = null;
 let toastTimer = null;
+let speechRecognition = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   bindEvents();
@@ -514,6 +515,8 @@ function handleClick(event) {
   if (action === "select-kana") selectKana(id);
   if (action === "toggle-kana-mastered") toggleMastered(`kana:${id}`, "五十音");
   if (action === "speak") speakText(text);
+  if (action === "start-mixed-quiz") startMixedQuiz();
+  if (action === "start-voice-quiz") startVoiceQuiz();
   if (action === "start-kana-quiz") startKanaQuiz();
   if (action === "set-level-section") setLevelSection(level, value);
   if (action === "expand-knowledge") toggleExpanded(id);
@@ -521,6 +524,8 @@ function handleClick(event) {
   if (action === "start-level-quiz") startLevelQuiz(level);
   if (action === "answer-quiz") answerQuiz(id);
   if (action === "submit-written-quiz") submitWrittenQuiz();
+  if (action === "start-speech-answer") startSpeechAnswer();
+  if (action === "submit-speech-quiz") submitSpeechQuiz();
   if (action === "next-quiz") nextQuiz();
   if (action === "clear-quiz") clearQuiz();
   if (action === "reset-progress") resetProgress();
@@ -596,7 +601,7 @@ function renderScreenState() {
   });
 
   const title = document.getElementById("screen-title");
-  title.textContent = screenTitles[state.activeScreen] || "今日";
+  title.textContent = screenTitles[state.activeScreen] || "练习";
 }
 
 function renderHome() {
@@ -612,9 +617,9 @@ function renderHome() {
     <section class="hero">
       <div class="hero-top">
         <div>
-          <p class="eyebrow">今日の自習</p>
-          <h2>先把该背的东西整理清楚，再练输出。</h2>
-          <p>这个版本只保留纯学习：五十音、N5、N4、N3。所有进度都存在你当前浏览器里。</p>
+          <p class="eyebrow">Practice First</p>
+          <h2>先做题，再回去补知识点。</h2>
+          <p>随机练习会混合五十音、N5、N4、N3、词汇、汉字、听力和口述。用错题把记忆压实。</p>
         </div>
         <div class="progress-orb" style="--angle:${total.percent * 3.6}deg">
           <strong>${total.percent}%</strong>
@@ -624,29 +629,65 @@ function renderHome() {
       <div class="stats-grid">
         ${renderStat("五十音", `${kanaProgress.done}/${kanaProgress.total}`)}
         ${renderStat("语法", `${total.grammarDone}/${total.grammarTotal}`)}
-        ${renderStat("今日", `${tasks.length} 项`)}
+        ${renderStat("题库", `${getPracticePoolSize()} 题源`)}
       </div>
     </section>
 
+    ${state.quiz ? renderQuiz() : ""}
+
     <section class="panel">
       <div class="section-title">
-        <h3>今日顺序</h3>
+        <h3>随机练习</h3>
         <button class="text-button" data-action="reset-progress" type="button">重置进度</button>
       </div>
-      <div class="task-list">
-        ${tasks.map((task, index) => renderTask(task, index)).join("")}
+      <div class="practice-mode-grid">
+        <button class="practice-mode-card main" data-action="start-mixed-quiz" type="button">
+          <span>综合随机</span>
+          <strong>30 题</strong>
+          <p>五十音 + N5/N4/N3 + 词汇 + 汉字 + 听力 + 输入。</p>
+        </button>
+        <button class="practice-mode-card" data-action="start-voice-quiz" type="button">
+          <span>语音专项</span>
+          <strong>20 题</strong>
+          <p>听音选择、听句选义、播放后跟读，能用语音识别时自动评分。</p>
+        </button>
+        <button class="practice-mode-card" data-action="start-kana-quiz" type="button">
+          <span>五十音</span>
+          <strong>20 题</strong>
+          <p>读、拼、写、听混合。</p>
+        </button>
       </div>
     </section>
 
     <section class="panel">
       <div class="section-title">
-        <h3>快速进入</h3>
+        <h3>分级练习</h3>
+      </div>
+      <div class="quick-grid">
+        ${renderPracticeQuick("N5", "20 题", "n5")}
+        ${renderPracticeQuick("N4", "20 题", "n4")}
+        ${renderPracticeQuick("N3", "20 题", "n3")}
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>知识点入口</h3>
       </div>
       <div class="quick-grid">
         ${renderQuick("五十音", `${kanaProgress.percent}%`, "kana")}
         ${renderQuick("N5", `${n5Progress.percent}%`, "n5")}
         ${renderQuick("N4", `${n4Progress.percent}%`, "n4")}
         ${renderQuick("N3", `${n3Progress.percent}%`, "n3")}
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>今日补漏</h3>
+      </div>
+      <div class="task-list">
+        ${tasks.map((task, index) => renderTask(task, index)).join("")}
       </div>
     </section>
   `;
@@ -872,11 +913,11 @@ function renderQuiz() {
           播放题目
         </button>
       ` : ""}
-      ${question.kind === "input" ? renderWrittenQuiz(question, answered) : renderChoiceQuiz(question, answered)}
+      ${renderQuizBody(question, answered)}
       ${answered ? `
         <div class="example">
           <b>${escapeHtml(question.feedbackTitle)}</b>
-          ${question.kind === "input" ? `<span>你的答案：${escapeHtml(quiz.answerValue || "空")}</span>` : ""}
+          ${question.kind === "input" || question.kind === "speech" ? `<span>你的答案：${escapeHtml(quiz.answerValue || "空")}</span>` : ""}
           <span>${escapeHtml(question.feedback)}</span>
         </div>
         <button class="primary-button" data-action="next-quiz" type="button">${quiz.index + 1 >= quiz.questions.length ? "完成" : "下一题"}</button>
@@ -885,10 +926,41 @@ function renderQuiz() {
   `;
 }
 
+function renderQuizBody(question, answered) {
+  if (question.kind === "input") return renderWrittenQuiz(question, answered);
+  if (question.kind === "speech") return renderSpeechQuiz(question, answered);
+  return renderChoiceQuiz(question, answered);
+}
+
 function renderChoiceQuiz(question, answered) {
   return `
     <div class="quiz-options">
       ${question.options.map((option) => renderQuizOption(question, option, answered)).join("")}
+    </div>
+  `;
+}
+
+function renderSpeechQuiz(question, answered) {
+  return `
+    <div class="speech-card">
+      ${question.visibleText ? `<p class="speech-target">${escapeHtml(question.visibleText)}</p>` : ""}
+      <div class="speech-actions">
+        <button class="secondary-button" data-action="start-speech-answer" type="button" ${answered || state.quiz.listening ? "disabled" : ""}>
+          ${state.quiz.listening ? "正在听..." : "开始录音"}
+        </button>
+        <button class="primary-button" data-action="submit-speech-quiz" type="button" ${answered ? "disabled" : ""}>提交口述</button>
+      </div>
+      <input
+        class="quiz-input"
+        data-quiz-answer="true"
+        type="text"
+        value="${escapeAttr(state.quiz.answerValue || "")}"
+        placeholder="识别结果会出现在这里；不支持语音识别时可手动输入"
+        autocapitalize="none"
+        autocomplete="off"
+        autocorrect="off"
+        ${answered ? "disabled" : ""}
+      />
     </div>
   `;
 }
@@ -945,6 +1017,15 @@ function renderQuick(title, value, screen) {
   `;
 }
 
+function renderPracticeQuick(title, value, level) {
+  return `
+    <button class="quick-card" data-action="start-level-quiz" data-level="${level}" type="button">
+      <span>${escapeHtml(title)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </button>
+  `;
+}
+
 function renderStat(title, value) {
   return `<article class="stat-card"><span>${escapeHtml(title)}</span><strong>${escapeHtml(value)}</strong></article>`;
 }
@@ -978,7 +1059,7 @@ function buildTodayTasks() {
     if (item) {
       tasks.push({
         title: `${levels[levelKey].label}：${item.title}`,
-        detail: `${item.zh}。先看例句，再做 5 题小测。`,
+        detail: `${item.zh}。先看例句，再做 20 题综合练习。`,
         screen: levelKey
       });
     }
@@ -1022,20 +1103,39 @@ function toggleMastered(id, label) {
   renderAll();
 }
 
+function startMixedQuiz() {
+  state.quiz = createQuiz("mixed", "综合随机练习", buildMixedQuizQuestions(30));
+  saveState();
+  renderHome();
+}
+
+function startVoiceQuiz() {
+  state.quiz = createQuiz("voice", "语音专项练习", buildVoiceQuizQuestions(20));
+  saveState();
+  renderHome();
+}
+
 function startKanaQuiz() {
   const questionCount = 20;
-  state.quiz = {
-    type: "kana",
-    title: "五十音综合测",
+  state.quiz = createQuiz("kana", "五十音综合测", buildKanaQuizQuestions(questionCount));
+  saveState();
+  if (state.activeScreen === "home") renderHome();
+  else renderKana();
+}
+
+function createQuiz(type, title, questions, extra = {}) {
+  return {
+    type,
+    title,
     index: 0,
     score: 0,
     answered: false,
     selectedId: "",
     answerValue: "",
-    questions: buildKanaQuizQuestions(questionCount)
+    listening: false,
+    questions,
+    ...extra
   };
-  saveState();
-  renderKana();
 }
 
 function buildKanaQuizQuestions(count) {
@@ -1058,6 +1158,7 @@ function createKanaQuestion(item, type) {
       kind: "choice",
       typeLabel: "读",
       masteryId: item.h,
+      masteryKey: `kana:${item.h}`,
       correctId: `kana:${item.h}`,
       prompt: `读音「${item.r}」对应哪个${state.kanaMode === "katakana" ? "片假名" : "平假名"}？`,
       feedbackTitle,
@@ -1072,6 +1173,7 @@ function createKanaQuestion(item, type) {
       kind: "choice",
       typeLabel: "拼",
       masteryId: item.h,
+      masteryKey: `kana:${item.h}`,
       correctId: `romaji:${item.r}`,
       prompt: `假名「${kanaLabel}」应该怎么读？`,
       feedbackTitle,
@@ -1085,6 +1187,7 @@ function createKanaQuestion(item, type) {
       kind: "input",
       typeLabel: "写",
       masteryId: item.h,
+      masteryKey: `kana:${item.h}`,
       prompt: `把读音「${item.r}」写成平假名。`,
       placeholder: "例如：あ",
       acceptedAnswers: [item.h],
@@ -1098,6 +1201,7 @@ function createKanaQuestion(item, type) {
       kind: "input",
       typeLabel: "写",
       masteryId: item.h,
+      masteryKey: `kana:${item.h}`,
       prompt: `把读音「${item.r}」写成片假名。`,
       placeholder: "例如：ア",
       acceptedAnswers: [item.k],
@@ -1111,6 +1215,7 @@ function createKanaQuestion(item, type) {
       kind: "input",
       typeLabel: "拼",
       masteryId: item.h,
+      masteryKey: `kana:${item.h}`,
       prompt: `写出假名「${kanaLabel}」的罗马音。`,
       placeholder: "例如：shi",
       acceptedAnswers: getRomajiAnswers(item.r),
@@ -1123,6 +1228,7 @@ function createKanaQuestion(item, type) {
     kind: "choice",
     typeLabel: "听",
     masteryId: item.h,
+    masteryKey: `kana:${item.h}`,
     correctId: `kana:${item.h}`,
     prompt: `先点播放，选择你听到的${state.kanaMode === "katakana" ? "片假名" : "平假名"}。`,
     speakText: item.h,
@@ -1175,40 +1281,286 @@ function getRomajiAnswers(romaji) {
   return aliases[romaji] || [romaji];
 }
 
+function buildMixedQuizQuestions(count) {
+  const guaranteed = [
+    ...buildKanaQuizQuestions(6),
+    ...buildBalancedLevelQuizQuestions("n5", 8),
+    ...buildBalancedLevelQuizQuestions("n4", 8),
+    ...buildBalancedLevelQuizQuestions("n3", 8)
+  ];
+  const bank = [
+    ...guaranteed,
+    ...buildKanaQuizQuestions(24),
+    ...buildLevelPracticeBank("n5"),
+    ...buildLevelPracticeBank("n4"),
+    ...buildLevelPracticeBank("n3")
+  ];
+  return takeUniqueQuestions(guaranteed, bank, count);
+}
+
+function buildVoiceQuizQuestions(count) {
+  const bank = [
+    ...buildKanaQuizQuestions(18).filter((question) => question.typeLabel === "听"),
+    ...buildLevelPracticeBank("n5").filter(isVoiceQuestion),
+    ...buildLevelPracticeBank("n4").filter(isVoiceQuestion),
+    ...buildLevelPracticeBank("n3").filter(isVoiceQuestion)
+  ];
+  return sample(bank, Math.min(count, bank.length));
+}
+
+function isVoiceQuestion(question) {
+  return question.typeLabel === "听力" || question.typeLabel === "跟读" || question.typeLabel === "听";
+}
+
 function startLevelQuiz(levelKey) {
   const level = levels[levelKey];
-  const filtered = state.queries[levelKey]
-    ? level.grammar.filter((item) => matchGrammar(item, normalize(state.queries[levelKey])))
+  state.quiz = createQuiz("level", `${level.label} 综合练习`, buildBalancedLevelQuizQuestions(levelKey, 20, state.queries[levelKey]), { level: levelKey });
+  saveState();
+  if (state.activeScreen === "home") renderHome();
+  else renderLevel(levelKey);
+}
+
+function buildBalancedLevelQuizQuestions(levelKey, count, query = "") {
+  const bank = buildLevelPracticeBank(levelKey, query);
+  const grammar = bank.filter((question) => isGrammarPractice(question, levelKey) && !isVoiceQuestion(question));
+  const vocab = bank.filter((question) => isVocabPractice(question, levelKey) && !isVoiceQuestion(question));
+  const kanji = bank.filter((question) => question.typeLabel === "汉字");
+  const voice = bank.filter(isVoiceQuestion);
+
+  const guaranteed = [
+    ...sample(grammar, Math.min(8, grammar.length)),
+    ...sample(vocab, Math.min(5, vocab.length)),
+    ...sample(kanji, Math.min(3, kanji.length)),
+    ...sample(voice, Math.min(4, voice.length))
+  ];
+
+  return takeUniqueQuestions(guaranteed, bank, count);
+}
+
+function isGrammarPractice(question, levelKey) {
+  return Boolean(question.masteryKey && question.masteryKey.startsWith(`${levelKey}-`));
+}
+
+function isVocabPractice(question, levelKey) {
+  return Boolean(question.masteryKey && question.masteryKey.startsWith(`${levelKey}:`));
+}
+
+function takeUniqueQuestions(guaranteed, bank, count) {
+  const seen = new Set();
+  const selected = [];
+  const add = (question) => {
+    const key = `${question.kind}:${question.typeLabel}:${question.prompt}:${question.correctId || question.acceptedAnswers?.join("|") || ""}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    selected.push(question);
+  };
+
+  guaranteed.forEach(add);
+  shuffle(bank).forEach((question) => {
+    if (selected.length < count) add(question);
+  });
+  return shuffle(selected).slice(0, count);
+}
+
+function buildLevelPracticeBank(levelKey, query = "") {
+  const level = levels[levelKey];
+  const normalizedQuery = normalize(query);
+  const grammarSource = normalizedQuery
+    ? level.grammar.filter((item) => matchGrammar(item, normalizedQuery))
     : level.grammar;
-  const source = filtered.length >= 20 ? filtered : level.grammar;
-  const pool = sample(source, Math.min(20, source.length));
-  state.quiz = {
-    type: "level",
-    level: levelKey,
-    title: `${level.label} 语法`,
-    index: 0,
-    score: 0,
-    answered: false,
-    selectedId: "",
-    answerValue: "",
-    questions: pool.map((item) => {
-      const wrong = sample(level.grammar.filter((candidate) => candidate.id !== item.id), 3);
+  const grammarItems = grammarSource.length ? grammarSource : level.grammar;
+  const vocabItems = getLevelWords(levelKey);
+  const kanjiItems = [...level.kanji].map((char) => ({ char, levelKey }));
+
+  return [
+    ...grammarItems.flatMap((item) => buildGrammarQuestions(levelKey, item)),
+    ...vocabItems.flatMap((item) => buildVocabQuestions(levelKey, item)),
+    ...sample(kanjiItems, Math.min(80, kanjiItems.length)).map((item) => buildKanjiQuestion(item))
+  ];
+}
+
+function buildGrammarQuestions(levelKey, item) {
+  const level = levels[levelKey];
+  const wrongGrammar = level.grammar.filter((candidate) => candidate.id !== item.id);
+  return [
+    {
+      kind: "choice",
+      typeLabel: "语法",
+      masteryKey: item.id,
+      correctId: `grammar:${item.id}:pattern`,
+      prompt: `「${item.zh}」常用哪个句型？`,
+      feedbackTitle: `${item.title}：${item.pattern}`,
+      feedback: `${item.example}（${item.exampleZh}）`,
+      options: shuffle([
+        { id: `grammar:${item.id}:pattern`, label: `${item.title}  ${item.pattern}` },
+        ...sample(wrongGrammar, 3).map((candidate) => ({
+          id: `grammar:${candidate.id}:pattern`,
+          label: `${candidate.title}  ${candidate.pattern}`
+        }))
+      ])
+    },
+    {
+      kind: "choice",
+      typeLabel: "理解",
+      masteryKey: item.id,
+      correctId: `grammar:${item.id}:meaning`,
+      prompt: `句型「${item.title}」主要是什么意思？`,
+      feedbackTitle: `${item.title}：${item.zh}`,
+      feedback: `${item.example}（${item.exampleZh}）`,
+      options: shuffle([
+        { id: `grammar:${item.id}:meaning`, label: item.zh },
+        ...sample(wrongGrammar, 3).map((candidate) => ({
+          id: `grammar:${candidate.id}:meaning`,
+          label: candidate.zh
+        }))
+      ])
+    },
+    {
+      kind: "input",
+      typeLabel: "输入",
+      masteryKey: item.id,
+      prompt: `输入这个意思对应的句型：${item.zh}`,
+      placeholder: item.title,
+      acceptedAnswers: getGrammarAnswers(item),
+      feedbackTitle: `${item.title}：${item.pattern}`,
+      feedback: `${item.example}（${item.exampleZh}）`
+    },
+    {
+      kind: "choice",
+      typeLabel: "听力",
+      masteryKey: item.id,
+      correctId: `grammar:${item.id}:listen`,
+      prompt: "播放日语例句，选择它的中文意思。",
+      speakText: item.example,
+      feedbackTitle: item.example,
+      feedback: item.exampleZh,
+      options: shuffle([
+        { id: `grammar:${item.id}:listen`, label: item.exampleZh },
+        ...sample(wrongGrammar, 3).map((candidate) => ({
+          id: `grammar:${candidate.id}:listen`,
+          label: candidate.exampleZh
+        }))
+      ])
+    },
+    {
+      kind: "speech",
+      typeLabel: "跟读",
+      masteryKey: item.id,
+      prompt: "播放后跟读这句日语。",
+      speakText: item.example,
+      visibleText: item.example,
+      acceptedAnswers: [item.example],
+      feedbackTitle: item.example,
+      feedback: `目标意思：${item.exampleZh}`
+    }
+  ];
+}
+
+function buildVocabQuestions(levelKey, item) {
+  const words = getLevelWords(levelKey).filter((word) => word.ja !== item.ja);
+  return [
+    {
+      kind: "choice",
+      typeLabel: "词汇",
+      masteryKey: item.id,
+      correctId: `vocab:${item.id}:zh`,
+      prompt: `「${item.ja}」是什么意思？`,
+      feedbackTitle: `${item.ja}：${item.zh}`,
+      feedback: `词汇主题：${item.groupTitle}`,
+      options: shuffle([
+        { id: `vocab:${item.id}:zh`, label: item.zh },
+        ...sample(words, 3).map((word) => ({ id: `vocab:${word.id}:zh`, label: word.zh }))
+      ])
+    },
+    {
+      kind: "choice",
+      typeLabel: "词汇",
+      masteryKey: item.id,
+      correctId: `vocab:${item.id}:ja`,
+      prompt: `中文「${item.zh}」对应哪个日语词？`,
+      feedbackTitle: `${item.ja}：${item.zh}`,
+      feedback: `词汇主题：${item.groupTitle}`,
+      options: shuffle([
+        { id: `vocab:${item.id}:ja`, label: item.ja },
+        ...sample(words, 3).map((word) => ({ id: `vocab:${word.id}:ja`, label: word.ja }))
+      ])
+    },
+    {
+      kind: "input",
+      typeLabel: "输入",
+      masteryKey: item.id,
+      prompt: `把「${item.zh}」写成日语。`,
+      placeholder: item.ja,
+      acceptedAnswers: [item.ja],
+      feedbackTitle: `${item.ja}：${item.zh}`,
+      feedback: `词汇主题：${item.groupTitle}`
+    },
+    {
+      kind: "choice",
+      typeLabel: "听力",
+      masteryKey: item.id,
+      correctId: `vocab:${item.id}:listen`,
+      prompt: "播放日语词，选择中文意思。",
+      speakText: item.ja,
+      feedbackTitle: `${item.ja}：${item.zh}`,
+      feedback: `词汇主题：${item.groupTitle}`,
+      options: shuffle([
+        { id: `vocab:${item.id}:listen`, label: item.zh },
+        ...sample(words, 3).map((word) => ({ id: `vocab:${word.id}:listen`, label: word.zh }))
+      ])
+    },
+    {
+      kind: "speech",
+      typeLabel: "跟读",
+      masteryKey: item.id,
+      prompt: "播放后跟读这个词。",
+      speakText: item.ja,
+      visibleText: item.ja,
+      acceptedAnswers: [item.ja],
+      feedbackTitle: `${item.ja}：${item.zh}`,
+      feedback: `词汇主题：${item.groupTitle}`
+    }
+  ];
+}
+
+function buildKanjiQuestion(item) {
+  const level = levels[item.levelKey];
+  return {
+    kind: "choice",
+    typeLabel: "汉字",
+    masteryKey: `kanji:${item.levelKey}:${item.char}`,
+    correctId: `kanji:${item.levelKey}`,
+    prompt: `汉字「${item.char}」在这个 App 里归到哪个等级？`,
+    feedbackTitle: `${item.char}：${level.label}`,
+    feedback: "先用等级范围做快速识别；后续可以继续补读音和释义表。",
+    options: shuffle(Object.values(levels).map((candidate) => ({
+      id: `kanji:${candidate.key}`,
+      label: candidate.label
+    })))
+  };
+}
+
+function getGrammarAnswers(item) {
+  const raw = `${item.title} / ${item.pattern}`;
+  return raw
+    .split("/")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function getLevelWords(levelKey) {
+  return levels[levelKey].vocab.flatMap((group) =>
+    group.words.map((word) => {
+      const [ja, zh = ""] = word.split("：");
       return {
-        kind: "choice",
-        typeLabel: "语法",
-        correctId: item.id,
-        prompt: `「${item.zh}」常用哪个句型？`,
-        feedbackTitle: `${item.title}：${item.pattern}`,
-        feedback: `${item.example}（${item.exampleZh}）`,
-        options: shuffle([
-          { id: item.id, label: `${item.title}  ${item.pattern}` },
-          ...wrong.map((candidate) => ({ id: candidate.id, label: `${candidate.title}  ${candidate.pattern}` }))
-        ])
+        id: `${levelKey}:${ja}`,
+        levelKey,
+        groupTitle: group.title,
+        ja,
+        zh
       };
     })
-  };
-  saveState();
-  renderLevel(levelKey);
+  );
 }
 
 function answerQuiz(id) {
@@ -1218,8 +1570,7 @@ function answerQuiz(id) {
   state.quiz.answered = true;
   if (id === question.correctId) {
     state.quiz.score += 1;
-    if (state.quiz.type === "kana" && question.masteryId) state.mastered[`kana:${question.masteryId}`] = true;
-    if (state.quiz.type === "level") state.mastered[question.correctId] = true;
+    markQuestionMastered(question);
   }
   saveState();
   renderAll();
@@ -1241,10 +1592,87 @@ function submitWrittenQuiz() {
   state.quiz.answered = true;
   if (correct) {
     state.quiz.score += 1;
-    if (state.quiz.type === "kana" && question.masteryId) state.mastered[`kana:${question.masteryId}`] = true;
+    markQuestionMastered(question);
   }
   saveState();
   renderAll();
+}
+
+function startSpeechAnswer() {
+  if (!state.quiz || state.quiz.answered) return;
+  const question = state.quiz.questions[state.quiz.index];
+  if (!question || question.kind !== "speech") return;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast("这个浏览器不支持语音识别，可以先手动输入识别结果");
+    return;
+  }
+
+  if (speechRecognition) {
+    speechRecognition.stop();
+    speechRecognition = null;
+  }
+
+  state.quiz.answerValue = "";
+  state.quiz.listening = true;
+  saveState();
+  renderAll();
+
+  speechRecognition = new SpeechRecognition();
+  speechRecognition.lang = "ja-JP";
+  speechRecognition.interimResults = false;
+  speechRecognition.maxAlternatives = 1;
+  speechRecognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    state.quiz.answerValue = transcript;
+    state.quiz.listening = false;
+    saveState();
+    renderAll();
+  };
+  speechRecognition.onerror = () => {
+    state.quiz.listening = false;
+    saveState();
+    showToast("没有识别到声音，可以再试一次或手动输入");
+    renderAll();
+  };
+  speechRecognition.onend = () => {
+    if (state.quiz?.listening) {
+      state.quiz.listening = false;
+      saveState();
+      renderAll();
+    }
+    speechRecognition = null;
+  };
+  speechRecognition.start();
+}
+
+function submitSpeechQuiz() {
+  if (!state.quiz || state.quiz.answered) return;
+  const question = state.quiz.questions[state.quiz.index];
+  if (!question || question.kind !== "speech") return;
+
+  const answer = state.quiz.answerValue || "";
+  if (!normalizeAnswer(answer)) {
+    showToast("先录音或手动输入再提交");
+    return;
+  }
+
+  const score = scoreSpeechAnswer(answer, question.acceptedAnswers || []);
+  state.quiz.selectedId = normalizeSpeech(answer);
+  state.quiz.answered = true;
+  if (score >= 0.58) {
+    state.quiz.score += 1;
+    markQuestionMastered(question);
+  }
+  question.feedback = `${question.feedback}。相似度：${Math.round(score * 100)}%。`;
+  saveState();
+  renderAll();
+}
+
+function markQuestionMastered(question) {
+  if (!question.masteryKey) return;
+  state.mastered[question.masteryKey] = true;
 }
 
 function nextQuiz() {
@@ -1312,9 +1740,13 @@ function getLevelProgress(levelKey) {
 function getTotalProgress() {
   const kana = getKanaProgress();
   const grammar = Object.keys(levels).flatMap((levelKey) => levels[levelKey].grammar);
+  const vocab = Object.keys(levels).flatMap((levelKey) => getLevelWords(levelKey));
+  const kanji = Object.keys(levels).flatMap((levelKey) => [...levels[levelKey].kanji].map((char) => `kanji:${levelKey}:${char}`));
   const grammarDone = grammar.filter((item) => isMastered(item.id)).length;
-  const total = kana.total + grammar.length;
-  const done = kana.done + grammarDone;
+  const vocabDone = vocab.filter((item) => isMastered(item.id)).length;
+  const kanjiDone = kanji.filter((id) => isMastered(id)).length;
+  const total = kana.total + grammar.length + vocab.length + kanji.length;
+  const done = kana.done + grammarDone + vocabDone + kanjiDone;
   return {
     total,
     done,
@@ -1322,6 +1754,13 @@ function getTotalProgress() {
     grammarTotal: grammar.length,
     grammarDone
   };
+}
+
+function getPracticePoolSize() {
+  return getFlatKana().length + Object.keys(levels).reduce((sum, levelKey) => {
+    const level = levels[levelKey];
+    return sum + level.grammar.length + getLevelWords(levelKey).length + level.kanji.length;
+  }, 0);
 }
 
 function isMastered(id) {
@@ -1360,6 +1799,39 @@ function normalizeAnswer(value) {
     .trim()
     .toLowerCase()
     .replace(/\s+/g, "");
+}
+
+function normalizeSpeech(value) {
+  return toHalfWidth(String(value || ""))
+    .toLowerCase()
+    .replace(/[、。,.!?！？「」『』（）()\s]/g, "");
+}
+
+function scoreSpeechAnswer(answer, acceptedAnswers) {
+  const normalizedAnswer = normalizeSpeech(answer);
+  if (!normalizedAnswer) return 0;
+
+  return Math.max(...acceptedAnswers.map((expected) => {
+    const normalizedExpected = normalizeSpeech(expected);
+    if (!normalizedExpected) return 0;
+    if (normalizedAnswer === normalizedExpected) return 1;
+    if (normalizedAnswer.includes(normalizedExpected) || normalizedExpected.includes(normalizedAnswer)) return 0.86;
+    return lcsRatio(normalizedAnswer, normalizedExpected);
+  }));
+}
+
+function lcsRatio(a, b) {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const table = Array.from({ length: rows }, () => Array(cols).fill(0));
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      table[i][j] = a[i - 1] === b[j - 1]
+        ? table[i - 1][j - 1] + 1
+        : Math.max(table[i - 1][j], table[i][j - 1]);
+    }
+  }
+  return table[a.length][b.length] / Math.max(a.length, b.length);
 }
 
 function toHalfWidth(value) {

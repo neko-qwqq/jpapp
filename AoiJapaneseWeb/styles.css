@@ -355,6 +355,51 @@ svg {
   gap: 10px;
 }
 
+.practice-mode-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.practice-mode-card {
+  display: grid;
+  gap: 4px;
+  min-height: 92px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow-small);
+  text-align: left;
+}
+
+.practice-mode-card.main {
+  color: white;
+  background: linear-gradient(135deg, var(--sakura-500), var(--sakura-600));
+  border-color: transparent;
+}
+
+.practice-mode-card span {
+  color: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.82;
+}
+
+.practice-mode-card strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.practice-mode-card p {
+  margin: 2px 0 0;
+  color: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.78;
+}
+
 .task-item,
 .knowledge-card,
 .vocab-card,
@@ -758,6 +803,34 @@ svg {
   margin-top: 0;
 }
 
+.speech-card {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.speech-target {
+  margin: 0;
+  padding: 11px 12px;
+  border-radius: 13px;
+  color: var(--ink);
+  background: rgba(255, 241, 246, 0.78);
+  border: 1px solid rgba(243, 111, 159, 0.12);
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 850;
+}
+
+.speech-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.speech-actions .primary-button {
+  margin-top: 0;
+}
+
 .empty-card {
   padding: 18px;
   text-align: center;
@@ -881,6 +954,10 @@ svg {
   }
 
   .quiz-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .speech-actions {
     grid-template-columns: 1fr;
   }
 }
