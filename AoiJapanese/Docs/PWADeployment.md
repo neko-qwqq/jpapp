@@ -8,7 +8,7 @@ PWA 是目前最简单的手机使用方案。
 - 不需要 Apple Developer Program。
 - 不需要 TestFlight。
 - iPhone 可以用 Safari 打开并添加到主屏幕。
-- 后续可以接同一个 Cloudflare Worker 后端。
+- 当前版本不需要后端，适合纯自用学习。
 
 ## 部署到 GitHub Pages
 
@@ -35,22 +35,23 @@ https://neko-qwqq.github.io/jpapp/
 1. 用 iPhone Safari 打开 Pages URL。
 2. 点击分享按钮。
 3. 选择“添加到主屏幕”。
-4. 主屏幕会出现 Aoi Japanese 图标。
+4. 主屏幕会出现“日语自习”图标。
 
 ## 当前功能
 
 PWA 已包含：
 
-- 首页学习进度。
-- AI 日语老师聊天。
-- 日本朋友 Haru 模式。
-- N3 冲刺和弱点报告。
-- 语音陪练 UI。
-- 可选后端 API Base URL 设置。
+- 今日自习顺序和总进度。
+- 五十音：平假名、片假名、浊音、半浊音、拗音。
+- N5：语法、词汇主题、汉字。
+- N4：语法、词汇主题、汉字。
+- N3：语法、词汇主题、汉字。
+- 搜索、展开卡片、播放例句、掌握标记。
+- 五十音和语法小测验。
 - 离线缓存。
 
 ## 限制
 
-当前 PWA 使用本地 Mock AI。要使用真实 AI，需要先部署 `AoiJapaneseBackend`，再在 PWA “我的”页面填入 Worker 地址。
+当前 PWA 是自用学习清单，不接 AI，也不需要 OpenAI API。
 
-语音输入依赖浏览器支持。iPhone Safari 对网页语音识别能力有限，真实 Realtime 语音仍建议后续接 WebRTC 或保留原生 iOS 版本。
+如果浏览器曾经缓存过旧版页面，打开 Pages URL 后刷新一次；iPhone Safari 仍显示旧版时，删除主屏幕图标后重新添加。

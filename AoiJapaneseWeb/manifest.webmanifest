@@ -1,13 +1,13 @@
 {
-  "name": "Aoi Japanese",
-  "short_name": "Aoi",
-  "description": "AI 日语老师 PWA",
+  "name": "日语自习",
+  "short_name": "日语自习",
+  "description": "五十音、N5、N4、N3 自用学习 PWA",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fff9fc",
-  "theme_color": "#ec5f91",
+  "background_color": "#fffafd",
+  "theme_color": "#f36f9f",
   "icons": [
     {
       "src": "./assets/icon.svg",
