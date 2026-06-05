@@ -17,6 +17,14 @@
 2. 选择 iPhone 模拟器
 3. 运行 `AoiJapanese` Target
 
+## TestFlight
+
+云端签名和 TestFlight 上传流程见：
+
+```text
+Docs/TestFlightDeployment.md
+```
+
 ## 当前功能
 
 - 首页：今日学习进度、JLPT 等级、连续打卡、今日单词、今日语法、学习时间统计、AI 学习助手入口
