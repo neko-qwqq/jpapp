@@ -1,4 +1,4 @@
-const cacheName = "aoi-japanese-self-study-v6";
+const cacheName = "aoi-japanese-self-study-v7";
 
 const appShell = [
   "./",

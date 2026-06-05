@@ -481,6 +481,7 @@ let state = loadState();
 let deferredInstallPrompt = null;
 let toastTimer = null;
 let speechRecognition = null;
+let activeWritingCanvas = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   bindEvents();
@@ -491,6 +492,10 @@ document.addEventListener("DOMContentLoaded", () => {
 function bindEvents() {
   document.body.addEventListener("click", handleClick);
   document.body.addEventListener("input", handleInput);
+  document.body.addEventListener("pointerdown", handleWritingPointerDown);
+  document.body.addEventListener("pointermove", handleWritingPointerMove);
+  document.body.addEventListener("pointerup", stopWriting);
+  document.body.addEventListener("pointercancel", stopWriting);
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     deferredInstallPrompt = event;
@@ -515,6 +520,7 @@ function handleClick(event) {
   if (action === "open-unit") openUnit(screen, unit);
   if (action === "open-detail") openDetail(screen, unit, id);
   if (action === "route-back") routeBack();
+  if (action === "clear-writing-pad") clearWritingPad(actionElement);
   if (action === "set-kana-mode") setKanaMode(value);
   if (action === "select-kana") selectKana(id);
   if (action === "toggle-kana-mastered") toggleMastered(`kana:${id}`, "五十音");
@@ -548,6 +554,78 @@ function handleInput(event) {
   state.queries[input.dataset.searchLevel] = input.value;
   saveState();
   renderLevelContentOnly(input.dataset.searchLevel);
+}
+
+function handleWritingPointerDown(event) {
+  const canvas = event.target.closest(".writing-pad");
+  if (!canvas || state.quiz?.answered) return;
+
+  const context = canvas.getContext("2d");
+  if (!context) return;
+
+  const point = getCanvasPoint(canvas, event);
+  context.lineWidth = 10;
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  context.strokeStyle = "#4c3651";
+
+  activeWritingCanvas = {
+    canvas,
+    context,
+    pointerId: event.pointerId,
+    x: point.x,
+    y: point.y
+  };
+
+  if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+  context.beginPath();
+  context.moveTo(point.x, point.y);
+  context.lineTo(point.x + 0.01, point.y + 0.01);
+  context.stroke();
+  event.preventDefault();
+}
+
+function handleWritingPointerMove(event) {
+  if (!activeWritingCanvas || activeWritingCanvas.pointerId !== event.pointerId) return;
+
+  const point = getCanvasPoint(activeWritingCanvas.canvas, event);
+  activeWritingCanvas.context.beginPath();
+  activeWritingCanvas.context.moveTo(activeWritingCanvas.x, activeWritingCanvas.y);
+  activeWritingCanvas.context.lineTo(point.x, point.y);
+  activeWritingCanvas.context.stroke();
+  activeWritingCanvas.x = point.x;
+  activeWritingCanvas.y = point.y;
+  event.preventDefault();
+}
+
+function stopWriting(event) {
+  if (!activeWritingCanvas) return;
+  if (event?.pointerId !== undefined && activeWritingCanvas.pointerId !== event.pointerId) return;
+
+  if (activeWritingCanvas.canvas.releasePointerCapture && event?.pointerId !== undefined) {
+    try {
+      activeWritingCanvas.canvas.releasePointerCapture(event.pointerId);
+    } catch {}
+  }
+  activeWritingCanvas = null;
+}
+
+function clearWritingPad(button) {
+  const canvas = button.closest(".writing-pad-wrap")?.querySelector(".writing-pad");
+  if (!canvas) return;
+
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  activeWritingCanvas = null;
+}
+
+function getCanvasPoint(canvas, event) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+    y: ((event.clientY - rect.top) / rect.height) * canvas.height
+  };
 }
 
 function loadState() {
@@ -1162,11 +1240,29 @@ function renderQuiz() {
   const quiz = state.quiz;
   const question = quiz.questions[quiz.index];
   if (!question) {
+    const summary = getQuizSummary(quiz);
     const missed = quiz.questions.filter((item) => item.correct === false);
     return `
       <article class="quiz-card">
         <h3>练习完成</h3>
-        <p>正确 ${quiz.score} / ${quiz.questions.length}。答案只在这里复盘，避免做题时直接背答案。</p>
+        <p>正确 ${summary.correct} / ${summary.total}。答案只在这里复盘，避免做题时直接背答案。</p>
+        <div class="summary-grid">
+          <article class="summary-card ${summary.passed ? "pass" : "retry"}">
+            <span>通过率</span>
+            <strong>${summary.percent}%</strong>
+            <p>${summary.passed ? "通过" : "未通过"}</p>
+          </article>
+          <article class="summary-card">
+            <span>通过线</span>
+            <strong>${summary.threshold}%</strong>
+            <p>${summary.grade}</p>
+          </article>
+        </div>
+        ${summary.typeStats.length ? `
+          <div class="type-summary-list">
+            ${summary.typeStats.map(renderTypeSummaryItem).join("")}
+          </div>
+        ` : ""}
         ${missed.length ? `
           <div class="review-list">
             ${missed.map(renderReviewItem).join("")}
@@ -1264,7 +1360,19 @@ function renderSpeechQuiz(question, answered) {
 }
 
 function renderWrittenQuiz(question, answered) {
+  const writingPractice = question.writingTarget ? `
+    <div class="writing-pad-wrap ${answered ? "is-locked" : ""}">
+      <div class="writing-pad-head">
+        <span>${escapeHtml(question.writingLabel || "手写练习")}</span>
+        <button class="small-button" data-action="clear-writing-pad" type="button" ${answered ? "disabled" : ""}>清空</button>
+      </div>
+      <canvas class="writing-pad" width="560" height="360" aria-label="五十音手写练习区"></canvas>
+      <p class="writing-hint">先在格子里手写一遍，再用输入框提交答案。</p>
+    </div>
+  ` : "";
+
   return `
+    ${writingPractice}
     <div class="quiz-input-row">
       <input
         class="quiz-input"
@@ -1280,6 +1388,60 @@ function renderWrittenQuiz(question, answered) {
       <button class="primary-button" data-action="submit-written-quiz" type="button" ${answered ? "disabled" : ""}>提交</button>
     </div>
   `;
+}
+
+function renderTypeSummaryItem(item) {
+  return `
+    <article class="type-summary-item">
+      <div>
+        <strong>${escapeHtml(item.label)}</strong>
+        <span>${item.correct} / ${item.total}</span>
+      </div>
+      <div class="type-summary-bar" aria-hidden="true">
+        <i style="width: ${item.percent}%"></i>
+      </div>
+      <b>${item.percent}%</b>
+    </article>
+  `;
+}
+
+function getQuizSummary(quiz) {
+  const total = quiz.questions.length;
+  const correct = quiz.questions.filter((question) => question.correct === true).length;
+  const percent = total ? Math.round((correct / total) * 100) : 0;
+  const threshold = 80;
+  return {
+    total,
+    correct,
+    percent,
+    threshold,
+    passed: percent >= threshold,
+    grade: getQuizGrade(percent),
+    typeStats: getQuizTypeStats(quiz)
+  };
+}
+
+function getQuizTypeStats(quiz) {
+  const groups = new Map();
+  quiz.questions.forEach((question) => {
+    const label = question.typeLabel || "练习";
+    const current = groups.get(label) || { label, total: 0, correct: 0 };
+    current.total += 1;
+    if (question.correct === true) current.correct += 1;
+    groups.set(label, current);
+  });
+
+  return Array.from(groups.values()).map((item) => ({
+    ...item,
+    percent: item.total ? Math.round((item.correct / item.total) * 100) : 0
+  }));
+}
+
+function getQuizGrade(percent) {
+  if (percent >= 95) return "S：很稳";
+  if (percent >= 85) return "A：通过";
+  if (percent >= 70) return "B：接近通过";
+  return "再练一轮";
 }
 
 function renderQuizOption(question, option, answered) {
@@ -1489,8 +1651,10 @@ function createKanaQuestion(item, type) {
       masteryId: item.h,
       masteryKey: `kana:${item.h}`,
       prompt: `把读音「${item.r}」写成平假名。`,
-      placeholder: "例如：あ",
+      placeholder: "输入平假名",
       acceptedAnswers: [item.h],
+      writingTarget: item.h,
+      writingLabel: "平假名手写",
       feedbackTitle,
       feedback
     };
@@ -1503,8 +1667,10 @@ function createKanaQuestion(item, type) {
       masteryId: item.h,
       masteryKey: `kana:${item.h}`,
       prompt: `把读音「${item.r}」写成片假名。`,
-      placeholder: "例如：ア",
+      placeholder: "输入片假名",
       acceptedAnswers: [item.k],
+      writingTarget: item.k,
+      writingLabel: "片假名手写",
       feedbackTitle,
       feedback
     };
@@ -1517,7 +1683,7 @@ function createKanaQuestion(item, type) {
       masteryId: item.h,
       masteryKey: `kana:${item.h}`,
       prompt: `写出假名「${kanaLabel}」的罗马音。`,
-      placeholder: "例如：shi",
+      placeholder: "输入罗马音",
       acceptedAnswers: getRomajiAnswers(item.r),
       feedbackTitle,
       feedback
