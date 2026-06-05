@@ -5,19 +5,70 @@ import Observation
 final class AIChatViewModel {
     var messages: [AIMessage]
     var inputText: String
-    var selectedScene: AIPracticeScene
+    var selectedScene: AIPracticeScene {
+        didSet {
+            guard selectedScene != oldValue else { return }
+            messages = AIChatViewModel.initialMessages(for: selectedScene)
+        }
+    }
     var isThinking: Bool
+    var n3SessionCount: Int
+    var latestN3Score: Int
+
+    let n3Prompt = N3SimulationPrompt(
+        title: "面试题 01",
+        topic: "最近、生活の中で少し変えた習慣について話してください。",
+        explanation: "请用 45 秒左右说明你最近改变的一个生活习惯，并说出原因和结果。",
+        targetPattern: "〜ようにしています / 〜きっかけで / その結果",
+        checkpoints: [
+            "先说结论，再补原因",
+            "至少使用 1 个 N3 连接表达",
+            "结尾补一句自己的感受"
+        ],
+        sampleAnswer: "最近、朝早く起きるようにしています。仕事の前に日本語を勉強したいと思ったのがきっかけです。最初は大変でしたが、その結果、一日を落ち着いて始められるようになりました。"
+    )
+
+    let weaknessItems: [N3WeaknessItem] = [
+        N3WeaknessItem(
+            title: "连接表达",
+            detail: "会说单句，但理由和结果之间还不够自然。",
+            progress: 0.58,
+            recommendation: "今天重点练：〜きっかけで、〜ようになりました。"
+        ),
+        N3WeaknessItem(
+            title: "助词稳定度",
+            detail: "「に / で / を」在长句中容易混用。",
+            progress: 0.46,
+            recommendation: "回答后用 10 秒检查动词前的助词。"
+        ),
+        N3WeaknessItem(
+            title: "发音节奏",
+            detail: "句尾语气不错，但长句停顿位置需要更清楚。",
+            progress: 0.62,
+            recommendation: "每 12 到 16 个音拍自然停顿一次。"
+        )
+    ]
+
+    let scoringMetrics: [N3ScoringMetric] = [
+        N3ScoringMetric(title: "流畅度", score: 78, note: "能连续表达，但中段停顿略长。"),
+        N3ScoringMetric(title: "语法", score: 72, note: "N3 句型方向正确，助词要再稳定。"),
+        N3ScoringMetric(title: "自然度", score: 81, note: "内容像真实生活经历，结尾可以更有余韵。")
+    ]
 
     init(
-        messages: [AIMessage] = MockData.aiMessages,
+        messages: [AIMessage]? = nil,
         inputText: String = "",
-        selectedScene: AIPracticeScene = .convenienceStore,
-        isThinking: Bool = false
+        selectedScene: AIPracticeScene = .n3Sprint,
+        isThinking: Bool = false,
+        n3SessionCount: Int = 3,
+        latestN3Score: Int = 76
     ) {
-        self.messages = messages
-        self.inputText = inputText
         self.selectedScene = selectedScene
+        self.messages = messages ?? AIChatViewModel.initialMessages(for: selectedScene)
+        self.inputText = inputText
         self.isThinking = isThinking
+        self.n3SessionCount = n3SessionCount
+        self.latestN3Score = latestN3Score
     }
 
     func sendCurrentMessage() {
@@ -28,14 +79,20 @@ final class AIChatViewModel {
         inputText = ""
         isThinking = true
 
+        let scene = selectedScene
         Task {
             try? await Task.sleep(for: .milliseconds(650))
             await MainActor.run {
+                if scene == .n3Sprint {
+                    latestN3Score = min(96, latestN3Score + 2)
+                    n3SessionCount += 1
+                }
+
                 messages.append(
                     AIMessage(
                         role: .assistant,
-                        text: response(for: trimmed),
-                        helperText: "当前是 Mock AI。后续可在这里接入你的 AI 网关。"
+                        text: response(for: trimmed, scene: scene),
+                        helperText: helperText(for: scene)
                     )
                 )
                 isThinking = false
@@ -43,18 +100,125 @@ final class AIChatViewModel {
         }
     }
 
-    private func response(for text: String) -> String {
-        if text.contains("ください") {
-            return "说得很好。你已经正确使用了「をください」。下一句可以试试：コーヒーをください。"
+    func startN3Simulation() {
+        selectedScene = .n3Sprint
+        appendAssistantMessage(
+            "では、N3 模擬面接を始めます。\n\n質問：\(n3Prompt.topic)\n\nまず 3 文で答えてください。中国語で考えても大丈夫ですが、回答は日本語で言ってみましょう。",
+            helperText: "开始时不用追求完美。先把「结论、原因、结果」说出来。"
+        )
+    }
+
+    func fillN3SampleAnswer() {
+        selectedScene = .n3Sprint
+        inputText = n3Prompt.sampleAnswer
+    }
+
+    func generateWeaknessReport() {
+        selectedScene = .n3Sprint
+        appendAssistantMessage(
+            "N3 弱点报告：\n\n1. 连接表达：你能表达意思，但需要把原因和结果接得更自然。\n2. 助词：长句里优先检查「に」「で」「を」。\n3. 发音：句尾清楚，长句中间建议增加短停顿。\n\n今日练习：用「〜ようにしています」说 3 个生活习惯。",
+            helperText: "这是本地 Mock 报告。接入 OpenAI 后可根据真实对话记录生成。"
+        )
+    }
+
+    private func appendAssistantMessage(_ text: String, helperText: String? = nil) {
+        messages.append(AIMessage(role: .assistant, text: text, helperText: helperText))
+    }
+
+    private func response(for text: String, scene: AIPracticeScene) -> String {
+        if scene == .n3Sprint {
+            return n3Response(for: text)
         }
+
+        if text.contains("ください") || text.contains("ください。") {
+            return "言い方は自然です。少し丁寧にすると「お水をください」になります。\n\n中文：你的表达是对的，加上「お」会更礼貌。"
+        }
+
         if text.contains("です") {
-            return "这句很自然。N5 阶段先稳定使用「です」句型，就已经很棒。"
+            return "いいですね。「です」の形は安定しています。次は理由を一つ足してみましょう。\n\n中文：句型稳定了，下一步练习补充原因。"
         }
-        return "我明白了。我们把它改成更适合 N5 的表达：水をください。"
+
+        return "意味は伝わります。N5 なら「水をください」のように短く正確に言う練習から始めましょう。\n\n中文：先把短句说准，再慢慢增加自然度。"
+    }
+
+    private func n3Response(for text: String) -> String {
+        var suggestions: [String] = []
+
+        if !text.contains("よう") {
+            suggestions.append("加入「〜ようにしています」可以表达正在努力养成的习惯。")
+        }
+
+        if !text.contains("きっかけ") {
+            suggestions.append("加入「〜がきっかけです」可以把原因说得更像 N3。")
+        }
+
+        if !text.contains("結果") && !text.contains("その結果") {
+            suggestions.append("最后用「その結果」补结果，会让回答结构更完整。")
+        }
+
+        let advice: String
+        if suggestions.isEmpty {
+            advice = "结构完整，已经像 N3 面试回答。下一步练发音停顿：每一句中间只停一次。"
+        } else {
+            advice = suggestions.joined(separator: "\n")
+        }
+
+        return "採点：\(latestN3Score) / 100\n\nよくできました。内容は伝わります。\n\n改善建议：\n\(advice)\n\n修正版：\n最近、朝早く起きるようにしています。日本語を勉強したいと思ったのがきっかけです。その結果、毎日少し自信が持てるようになりました。"
+    }
+
+    private func helperText(for scene: AIPracticeScene) -> String {
+        switch scene {
+        case .n3Sprint:
+            return "AI 会用鼓励式反馈指出语法、结构和发音节奏问题。"
+        case .selfIntro:
+            return "自我介绍优先练清楚：名字、身份、喜欢的事。"
+        case .convenienceStore:
+            return "便利店场景先练请求表达和礼貌语。"
+        case .cafe:
+            return "咖啡店场景适合练点单、确认和追加需求。"
+        }
+    }
+
+    private static func initialMessages(for scene: AIPracticeScene) -> [AIMessage] {
+        switch scene {
+        case .n3Sprint:
+            return [
+                AIMessage(
+                    role: .assistant,
+                    text: "こんにちは。今日は N3 冲刺模式です。\n\n我会像真人日语老师一样，帮你完成 JLPT 风格口语模拟、语法纠正、发音节奏提示和弱点报告。",
+                    helperText: "先点「开始模拟」，或者直接输入一段日语回答。"
+                )
+            ]
+        case .selfIntro:
+            return [
+                AIMessage(
+                    role: .assistant,
+                    text: "こんにちは。今日は自己紹介を練習しましょう。\n\n先说一句：私は学生です。",
+                    helperText: "中文：我们先练最基础的自我介绍。"
+                )
+            ]
+        case .convenienceStore:
+            return [
+                AIMessage(
+                    role: .assistant,
+                    text: "こんにちは。今日はコンビニの場面です。\n\n你可以说：水をください。",
+                    helperText: "中文：便利店场景先练礼貌请求。"
+                )
+            ]
+        case .cafe:
+            return [
+                AIMessage(
+                    role: .assistant,
+                    text: "こんにちは。今日はカフェで注文してみましょう。\n\n你可以说：コーヒーをください。",
+                    helperText: "中文：咖啡店场景先练点单。"
+                )
+            ]
+        }
     }
 }
 
-enum AIPracticeScene: String, CaseIterable, Identifiable {
+enum AIPracticeScene: String, CaseIterable, Identifiable, Equatable {
+    case n3Sprint
     case selfIntro
     case convenienceStore
     case cafe
@@ -63,6 +227,8 @@ enum AIPracticeScene: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
+        case .n3Sprint:
+            return "N3 冲刺"
         case .selfIntro:
             return "自我介绍"
         case .convenienceStore:
@@ -72,8 +238,23 @@ enum AIPracticeScene: String, CaseIterable, Identifiable {
         }
     }
 
+    var subtitle: String {
+        switch self {
+        case .n3Sprint:
+            return "JLPT 风格口语模拟、弱点报告和发音节奏反馈"
+        case .selfIntro:
+            return "用简单句介绍自己，先建立开口信心"
+        case .convenienceStore:
+            return "练习请求、确认和礼貌表达"
+        case .cafe:
+            return "练习点单、追加和自然回应"
+        }
+    }
+
     var icon: String {
         switch self {
+        case .n3Sprint:
+            return "target"
         case .selfIntro:
             return "person.wave.2.fill"
         case .convenienceStore:
@@ -82,4 +263,28 @@ enum AIPracticeScene: String, CaseIterable, Identifiable {
             return "cup.and.saucer.fill"
         }
     }
+}
+
+struct N3SimulationPrompt: Hashable {
+    let title: String
+    let topic: String
+    let explanation: String
+    let targetPattern: String
+    let checkpoints: [String]
+    let sampleAnswer: String
+}
+
+struct N3WeaknessItem: Identifiable, Hashable {
+    let id = UUID()
+    let title: String
+    let detail: String
+    let progress: Double
+    let recommendation: String
+}
+
+struct N3ScoringMetric: Identifiable, Hashable {
+    let id = UUID()
+    let title: String
+    let score: Int
+    let note: String
 }
