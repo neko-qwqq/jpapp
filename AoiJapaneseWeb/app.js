@@ -471,6 +471,7 @@ const defaultState = {
   levelSection: { n5: "grammar", n4: "grammar", n3: "grammar" },
   queries: { n5: "", n4: "", n3: "" },
   expandedId: "",
+  route: { screen: "", unit: "", detailId: "" },
   mastered: {},
   quiz: null,
   installHintSeen: false
@@ -507,10 +508,13 @@ function handleClick(event) {
   if (!actionElement) return;
 
   const action = actionElement.dataset.action;
-  const { screen, level, id, value, text } = actionElement.dataset;
+  const { screen, level, id, value, text, unit } = actionElement.dataset;
 
   if (action === "install") installApp();
   if (action === "go-screen") setScreen(screen);
+  if (action === "open-unit") openUnit(screen, unit);
+  if (action === "open-detail") openDetail(screen, unit, id);
+  if (action === "route-back") routeBack();
   if (action === "set-kana-mode") setKanaMode(value);
   if (action === "select-kana") selectKana(id);
   if (action === "toggle-kana-mastered") toggleMastered(`kana:${id}`, "五十音");
@@ -562,6 +566,7 @@ function mergeState(base, saved) {
     ...saved,
     levelSection: { ...base.levelSection, ...(saved.levelSection || {}) },
     queries: { ...base.queries, ...(saved.queries || {}) },
+    route: { ...base.route, ...(saved.route || {}) },
     mastered: { ...(saved.mastered || {}) }
   };
 }
@@ -585,6 +590,36 @@ function renderAll() {
 
 function setScreen(screen) {
   state.activeScreen = screen;
+  state.quiz = null;
+  state.route = { screen: "", unit: "", detailId: "" };
+  saveState();
+  renderAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function openUnit(screen, unit) {
+  state.activeScreen = screen;
+  state.quiz = null;
+  state.route = { screen, unit, detailId: "" };
+  saveState();
+  renderAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function openDetail(screen, unit, detailId) {
+  state.activeScreen = screen;
+  state.route = { screen, unit, detailId };
+  saveState();
+  renderAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function routeBack() {
+  if (state.route.detailId) {
+    state.route.detailId = "";
+  } else {
+    state.route = { screen: "", unit: "", detailId: "" };
+  }
   state.quiz = null;
   saveState();
   renderAll();
@@ -698,6 +733,13 @@ function renderKana() {
   const progress = getKanaProgress();
   const currentChar = getKanaChar(selected);
   const root = document.getElementById("screen-kana");
+  const route = state.route.screen === "kana" ? state.route : null;
+  const activeSection = route?.unit ? getKanaSectionById(route.unit) : null;
+
+  if (activeSection) {
+    root.innerHTML = renderKanaUnit(activeSection, selected, currentChar, progress);
+    return;
+  }
 
   root.innerHTML = `
     <section class="hero">
@@ -726,6 +768,69 @@ function renderKana() {
 
     <section class="panel">
       <div class="section-title">
+        <h3>单元地图</h3>
+      </div>
+      <div class="unit-map">
+        ${kanaSections.map((section, index) => renderUnitNode({
+          screen: "kana",
+          unit: getKanaSectionId(section),
+          title: section.title,
+          label: `${index + 1}`,
+          detail: `${section.rows.flat().filter(Boolean).length} 个音，进入后单独练。`,
+          tone: index
+        })).join("")}
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>当前音</h3>
+      </div>
+      <article class="detail-card">
+        <div>
+          <div class="jp-large">${escapeHtml(currentChar)}</div>
+          <p>${escapeHtml(selected.r)}，${escapeHtml(selected.h)} / ${escapeHtml(selected.k)}</p>
+        </div>
+        <div class="detail-actions">
+          <button class="secondary-button" data-action="speak" data-text="${escapeAttr(currentChar)}" type="button">播放</button>
+          <button class="secondary-button" data-action="toggle-kana-mastered" data-id="${escapeAttr(selected.h)}" type="button">
+            ${isMastered(`kana:${selected.h}`) ? "取消掌握" : "标记掌握"}
+          </button>
+        </div>
+      </article>
+    </section>
+  `;
+}
+
+function renderKanaUnit(section, selected, currentChar, progress) {
+  return `
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <button class="text-button route-back" data-action="route-back" type="button">返回五十音</button>
+          <p class="eyebrow">Kana Unit</p>
+          <h2>${escapeHtml(section.title)}</h2>
+          <p>这是二级单元页。先单独看这一组，再做这一组的综合练习。</p>
+        </div>
+        <div class="progress-orb" style="--angle:${progress.percent * 3.6}deg">
+          <strong>${progress.percent}%</strong>
+          <span>假名</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="segmented">
+        ${renderChip("平假名", "set-kana-mode", "hiragana", state.kanaMode === "hiragana")}
+        ${renderChip("片假名", "set-kana-mode", "katakana", state.kanaMode === "katakana")}
+        <button class="chip" data-action="start-kana-quiz" type="button">练这一组</button>
+      </div>
+    </div>
+
+    ${state.quiz?.type === "kana" ? renderQuiz() : ""}
+
+    <section class="panel">
+      <div class="section-title">
         <h3>当前音</h3>
       </div>
       <article class="detail-card">
@@ -742,7 +847,7 @@ function renderKana() {
       </article>
     </section>
 
-    ${kanaSections.map((section) => renderKanaSection(section)).join("")}
+    ${renderKanaSection(section)}
   `;
 }
 
@@ -753,6 +858,17 @@ function renderLevel(levelKey) {
   const progress = getLevelProgress(levelKey);
   const query = state.queries[levelKey] || "";
   const content = renderLevelContent(levelKey, section, query);
+  const route = state.route.screen === levelKey ? state.route : null;
+
+  if (route?.detailId) {
+    root.innerHTML = renderLevelDetail(levelKey, route.detailId, route.unit || section);
+    return;
+  }
+
+  if (route?.unit) {
+    root.innerHTML = renderLevelUnit(levelKey, route.unit, query);
+    return;
+  }
 
   root.innerHTML = `
     <section class="hero">
@@ -785,7 +901,126 @@ function renderLevel(levelKey) {
     </div>
 
     ${state.quiz?.type === "level" && state.quiz.level === levelKey ? renderQuiz() : ""}
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>单元地图</h3>
+      </div>
+      <div class="unit-map">
+        ${renderUnitNode({ screen: levelKey, unit: "grammar", title: "语法闯关", label: "1", detail: `${level.grammar.length} 个句型，先理解再练输入。`, tone: 0 })}
+        ${renderUnitNode({ screen: levelKey, unit: "vocab", title: "词汇记忆", label: "2", detail: `${getLevelWords(levelKey).length} 个词，做中日互认和听音。`, tone: 1 })}
+        ${renderUnitNode({ screen: levelKey, unit: "kanji", title: "汉字识别", label: "3", detail: `${level.kanji.length} 个汉字，先做快速识别。`, tone: 2 })}
+        ${renderUnitNode({ screen: levelKey, unit: "practice", title: "综合练习", label: "4", detail: "20 题混合：语法、词汇、汉字、输入、听力、跟读。", tone: 3 })}
+      </div>
+    </section>
+
     <div id="${levelKey}-content">${content}</div>
+  `;
+}
+
+function renderLevelUnit(levelKey, unit, query) {
+  const level = levels[levelKey];
+  const unitTitle = getLevelUnitTitle(unit);
+  const content = unit === "practice" ? renderPracticeUnit(levelKey) : renderLevelContent(levelKey, unit, query);
+
+  return `
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <button class="text-button route-back" data-action="route-back" type="button">返回 ${level.label}</button>
+          <p class="eyebrow">${level.label} Unit</p>
+          <h2>${escapeHtml(unitTitle)}</h2>
+          <p>这是二级单元页。先集中处理一个能力，再回到综合练习。</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="segmented">
+        ${renderLevelUnitChip(levelKey, "grammar", "语法", unit)}
+        ${renderLevelUnitChip(levelKey, "vocab", "词汇", unit)}
+        ${renderLevelUnitChip(levelKey, "kanji", "汉字", unit)}
+        ${renderLevelUnitChip(levelKey, "practice", "练习", unit)}
+      </div>
+      ${unit !== "practice" ? `<input class="search-box" data-search-level="${levelKey}" type="search" value="${escapeAttr(query || "")}" placeholder="搜索：助词、原因、ています..." />` : ""}
+    </div>
+
+    ${state.quiz?.type === "level" && state.quiz.level === levelKey ? renderQuiz() : ""}
+    <div id="${levelKey}-content">${content}</div>
+  `;
+}
+
+function renderLevelDetail(levelKey, detailId, unit) {
+  const level = levels[levelKey];
+  const item = level.grammar.find((grammar) => grammar.id === detailId);
+  if (!item) return renderLevelUnit(levelKey, unit || "grammar", state.queries[levelKey] || "");
+
+  return `
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <button class="text-button route-back" data-action="route-back" type="button">返回单元</button>
+          <p class="eyebrow">${level.label} Detail</p>
+          <h2>${escapeHtml(item.title)}</h2>
+          <p>${escapeHtml(item.zh)}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>句型</h3>
+      </div>
+      <article class="detail-card">
+        <strong>${escapeHtml(item.pattern)}</strong>
+        <div class="example">
+          <b>${escapeHtml(item.example)}</b>
+          <span>${escapeHtml(item.exampleZh)}</span>
+        </div>
+        <div class="card-actions">
+          <button class="secondary-button" data-action="speak" data-text="${escapeAttr(item.example)}" type="button">播放例句</button>
+          <button class="secondary-button" data-action="toggle-mastered" data-level="${levelKey}" data-id="${escapeAttr(item.id)}" type="button">
+            ${isMastered(item.id) ? "取消掌握" : "标记掌握"}
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>马上练</h3>
+      </div>
+      <div class="practice-mode-grid">
+        <button class="practice-mode-card main" data-action="start-level-quiz" data-level="${levelKey}" type="button">
+          <span>${escapeHtml(level.label)}</span>
+          <strong>20 题</strong>
+          <p>包含这个等级的语法、词汇、汉字、输入和语音题。</p>
+        </button>
+      </div>
+    </section>
+  `;
+}
+
+function renderPracticeUnit(levelKey) {
+  const level = levels[levelKey];
+  return `
+    <section class="panel">
+      <div class="section-title">
+        <h3>${escapeHtml(level.label)} 练习流</h3>
+      </div>
+      <div class="practice-mode-grid">
+        <button class="practice-mode-card main" data-action="start-level-quiz" data-level="${levelKey}" type="button">
+          <span>综合</span>
+          <strong>20 题</strong>
+          <p>语法、词汇、汉字、输入、听力、跟读固定覆盖。</p>
+        </button>
+        <button class="practice-mode-card" data-action="start-voice-quiz" type="button">
+          <span>语音</span>
+          <strong>20 题</strong>
+          <p>听音和跟读，适合通勤前快速刷。</p>
+        </button>
+      </div>
+    </section>
   `;
 }
 
@@ -821,6 +1056,7 @@ function renderLevelContent(levelKey, section, query) {
 function renderKnowledgeCard(levelKey, item) {
   const mastered = isMastered(item.id);
   const expanded = state.expandedId === item.id;
+  const unit = state.route.unit || "grammar";
   return `
     <article class="knowledge-card ${mastered ? "is-mastered" : ""} ${expanded ? "is-expanded" : ""}">
       <div class="knowledge-head">
@@ -832,7 +1068,10 @@ function renderKnowledgeCard(levelKey, item) {
             ${(item.tags || []).map((tag) => `<span class="tag green">${escapeHtml(tag)}</span>`).join("")}
           </div>
         </div>
-        <button class="small-button" data-action="expand-knowledge" data-id="${escapeAttr(item.id)}" type="button">${expanded ? "收起" : "展开"}</button>
+        <div class="mini-actions">
+          <button class="small-button" data-action="open-detail" data-screen="${levelKey}" data-unit="${unit}" data-id="${escapeAttr(item.id)}" type="button">详情</button>
+          <button class="small-button" data-action="expand-knowledge" data-id="${escapeAttr(item.id)}" type="button">${expanded ? "收起" : "展开"}</button>
+        </div>
       </div>
       <div class="knowledge-body">
         <div class="example">
@@ -848,6 +1087,38 @@ function renderKnowledgeCard(levelKey, item) {
       </div>
     </article>
   `;
+}
+
+function renderUnitNode({ screen, unit, title, label, detail, tone }) {
+  return `
+    <button class="unit-node tone-${tone % 4}" data-action="open-unit" data-screen="${screen}" data-unit="${escapeAttr(unit)}" type="button">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(title)}</strong>
+      <p>${escapeHtml(detail)}</p>
+    </button>
+  `;
+}
+
+function renderLevelUnitChip(level, value, label, activeUnit) {
+  return `<button class="chip ${activeUnit === value ? "is-active" : ""}" data-action="open-unit" data-screen="${level}" data-unit="${value}" type="button">${escapeHtml(label)}</button>`;
+}
+
+function getLevelUnitTitle(unit) {
+  const titles = {
+    grammar: "语法闯关",
+    vocab: "词汇记忆",
+    kanji: "汉字识别",
+    practice: "综合练习"
+  };
+  return titles[unit] || "单元";
+}
+
+function getKanaSectionId(section) {
+  return section.title.replaceAll(" ", "-");
+}
+
+function getKanaSectionById(id) {
+  return kanaSections.find((section) => getKanaSectionId(section) === id);
 }
 
 function renderVocabCard(group) {
@@ -891,10 +1162,16 @@ function renderQuiz() {
   const quiz = state.quiz;
   const question = quiz.questions[quiz.index];
   if (!question) {
+    const missed = quiz.questions.filter((item) => item.correct === false);
     return `
       <article class="quiz-card">
         <h3>练习完成</h3>
-        <p>正确 ${quiz.score} / ${quiz.questions.length}。错题不用急，回到卡片里标记和复习就行。</p>
+        <p>正确 ${quiz.score} / ${quiz.questions.length}。答案只在这里复盘，避免做题时直接背答案。</p>
+        ${missed.length ? `
+          <div class="review-list">
+            ${missed.map(renderReviewItem).join("")}
+          </div>
+        ` : `<div class="review-empty">这轮没有错题。</div>`}
         <button class="primary-button" data-action="clear-quiz" type="button">结束练习</button>
       </article>
     `;
@@ -915,13 +1192,24 @@ function renderQuiz() {
       ` : ""}
       ${renderQuizBody(question, answered)}
       ${answered ? `
-        <div class="example">
-          <b>${escapeHtml(question.feedbackTitle)}</b>
+        <div class="quiz-result ${question.correct ? "is-correct" : "is-wrong"}">
+          <strong>${question.correct ? "答对了" : "先继续，答案放到最后复盘"}</strong>
           ${question.kind === "input" || question.kind === "speech" ? `<span>你的答案：${escapeHtml(quiz.answerValue || "空")}</span>` : ""}
-          <span>${escapeHtml(question.feedback)}</span>
         </div>
         <button class="primary-button" data-action="next-quiz" type="button">${quiz.index + 1 >= quiz.questions.length ? "完成" : "下一题"}</button>
       ` : ""}
+    </article>
+  `;
+}
+
+function renderReviewItem(question) {
+  return `
+    <article class="review-item">
+      <span>${escapeHtml(question.typeLabel || "练习")}</span>
+      <strong>${escapeHtml(question.prompt)}</strong>
+      <p>你的答案：${escapeHtml(question.userAnswer || "空")}</p>
+      <p>正确答案：${escapeHtml(getQuestionAnswerText(question))}</p>
+      <p>${escapeHtml(question.feedback || "")}</p>
     </article>
   `;
 }
@@ -933,6 +1221,16 @@ function renderQuizBody(question, answered) {
 }
 
 function renderChoiceQuiz(question, answered) {
+  if (answered) {
+    const selected = question.options.find((option) => option.id === state.quiz.selectedId);
+    return `
+      <div class="selected-answer ${question.correct ? "is-correct" : "is-wrong"}">
+        <span>已选择</span>
+        <strong>${escapeHtml(selected?.label || "未选择")}</strong>
+      </div>
+    `;
+  }
+
   return `
     <div class="quiz-options">
       ${question.options.map((option) => renderQuizOption(question, option, answered)).join("")}
@@ -986,7 +1284,7 @@ function renderWrittenQuiz(question, answered) {
 
 function renderQuizOption(question, option, answered) {
   let className = "";
-  if (answered && option.id === question.correctId) className = "is-correct";
+  if (answered && option.id === state.quiz.selectedId && option.id === question.correctId) className = "is-correct";
   if (answered && option.id === state.quiz.selectedId && option.id !== question.correctId) className = "is-wrong";
   return `
     <button class="option-button ${className}" data-action="answer-quiz" data-id="${escapeAttr(option.id)}" type="button" ${answered ? "disabled" : ""}>
@@ -1117,7 +1415,9 @@ function startVoiceQuiz() {
 
 function startKanaQuiz() {
   const questionCount = 20;
-  state.quiz = createQuiz("kana", "五十音综合测", buildKanaQuizQuestions(questionCount));
+  const section = state.route.screen === "kana" && state.route.unit ? getKanaSectionById(state.route.unit) : null;
+  const source = section ? section.rows.flat().filter(Boolean) : getFlatKana();
+  state.quiz = createQuiz("kana", section ? `${section.title}综合测` : "五十音综合测", buildKanaQuizQuestions(questionCount, source));
   saveState();
   if (state.activeScreen === "home") renderHome();
   else renderKana();
@@ -1138,8 +1438,8 @@ function createQuiz(type, title, questions, extra = {}) {
   };
 }
 
-function buildKanaQuizQuestions(count) {
-  const items = shuffle(getFlatKana());
+function buildKanaQuizQuestions(count, source = getFlatKana()) {
+  const items = shuffle(source);
   const types = ["romaji-to-kana", "kana-to-romaji", "write-hiragana", "write-katakana", "write-romaji", "listen-kana"];
   return Array.from({ length: count }, (_, index) => {
     const item = items[index % items.length];
@@ -1566,9 +1866,13 @@ function getLevelWords(levelKey) {
 function answerQuiz(id) {
   if (!state.quiz || state.quiz.answered) return;
   const question = state.quiz.questions[state.quiz.index];
+  const selected = question.options.find((option) => option.id === id);
+  const correct = id === question.correctId;
   state.quiz.selectedId = id;
   state.quiz.answered = true;
-  if (id === question.correctId) {
+  question.correct = correct;
+  question.userAnswer = selected?.label || id;
+  if (correct) {
     state.quiz.score += 1;
     markQuestionMastered(question);
   }
@@ -1590,6 +1894,8 @@ function submitWrittenQuiz() {
   const correct = (question.acceptedAnswers || []).some((accepted) => normalizeAnswer(answer) === normalizeAnswer(accepted));
   state.quiz.selectedId = normalizeAnswer(answer);
   state.quiz.answered = true;
+  question.correct = correct;
+  question.userAnswer = answer;
   if (correct) {
     state.quiz.score += 1;
     markQuestionMastered(question);
@@ -1661,6 +1967,8 @@ function submitSpeechQuiz() {
   const score = scoreSpeechAnswer(answer, question.acceptedAnswers || []);
   state.quiz.selectedId = normalizeSpeech(answer);
   state.quiz.answered = true;
+  question.correct = score >= 0.58;
+  question.userAnswer = answer;
   if (score >= 0.58) {
     state.quiz.score += 1;
     markQuestionMastered(question);
@@ -1668,6 +1976,16 @@ function submitSpeechQuiz() {
   question.feedback = `${question.feedback}。相似度：${Math.round(score * 100)}%。`;
   saveState();
   renderAll();
+}
+
+function getQuestionAnswerText(question) {
+  if (question.kind === "choice") {
+    return question.options.find((option) => option.id === question.correctId)?.label || question.feedbackTitle || "";
+  }
+  if (question.acceptedAnswers?.length) {
+    return question.acceptedAnswers[0];
+  }
+  return question.feedbackTitle || "";
 }
 
 function markQuestionMastered(question) {
