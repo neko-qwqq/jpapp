@@ -520,12 +520,20 @@ function handleClick(event) {
   if (action === "toggle-mastered") toggleMastered(id, levels[level]?.label || "知识点");
   if (action === "start-level-quiz") startLevelQuiz(level);
   if (action === "answer-quiz") answerQuiz(id);
+  if (action === "submit-written-quiz") submitWrittenQuiz();
   if (action === "next-quiz") nextQuiz();
   if (action === "clear-quiz") clearQuiz();
   if (action === "reset-progress") resetProgress();
 }
 
 function handleInput(event) {
+  const quizInput = event.target.closest("[data-quiz-answer]");
+  if (quizInput && state.quiz && !state.quiz.answered) {
+    state.quiz.answerValue = quizInput.value;
+    saveState();
+    return;
+  }
+
   const input = event.target.closest("[data-search-level]");
   if (!input) return;
   state.queries[input.dataset.searchLevel] = input.value;
@@ -656,7 +664,7 @@ function renderKana() {
         <div>
           <p class="eyebrow">Kana</p>
           <h2>五十音、浊音、拗音一次放在这里。</h2>
-          <p>点任意音节可听发音，手动标记掌握；小测验会从全部假名里抽题。</p>
+          <p>点任意音节可听发音；综合测验包含读音、拼读、书写和听音，不再把答案直接写在选项里。</p>
         </div>
         <div class="progress-orb" style="--angle:${progress.percent * 3.6}deg">
           <strong>${progress.percent}%</strong>
@@ -669,7 +677,7 @@ function renderKana() {
       <div class="segmented">
         ${renderChip("平假名", "set-kana-mode", "hiragana", state.kanaMode === "hiragana")}
         ${renderChip("片假名", "set-kana-mode", "katakana", state.kanaMode === "katakana")}
-        <button class="chip" data-action="start-kana-quiz" type="button">随机测 8 个</button>
+        <button class="chip" data-action="start-kana-quiz" type="button">综合测 20 题</button>
       </div>
     </div>
 
@@ -730,7 +738,7 @@ function renderLevel(levelKey) {
         ${renderLevelChip(levelKey, "grammar", "语法")}
         ${renderLevelChip(levelKey, "vocab", "词汇")}
         ${renderLevelChip(levelKey, "kanji", "汉字")}
-        <button class="chip" data-action="start-level-quiz" data-level="${levelKey}" type="button">练 5 题</button>
+        <button class="chip" data-action="start-level-quiz" data-level="${levelKey}" type="button">练 20 题</button>
       </div>
       <input class="search-box" data-search-level="${levelKey}" type="search" value="${escapeAttr(query)}" placeholder="搜索：助词、原因、ています..." />
     </div>
@@ -855,18 +863,52 @@ function renderQuiz() {
   return `
     <article class="quiz-card">
       <h3>${escapeHtml(quiz.title)} ${quiz.index + 1} / ${quiz.questions.length}</h3>
-      <p>${escapeHtml(question.prompt)}</p>
-      <div class="quiz-options">
-        ${question.options.map((option) => renderQuizOption(question, option, answered)).join("")}
+      <div class="quiz-prompt-line">
+        <span class="quiz-type">${escapeHtml(question.typeLabel || "练习")}</span>
+        <p>${escapeHtml(question.prompt)}</p>
       </div>
+      ${question.speakText ? `
+        <button class="secondary-button quiz-audio" data-action="speak" data-text="${escapeAttr(question.speakText)}" type="button">
+          播放题目
+        </button>
+      ` : ""}
+      ${question.kind === "input" ? renderWrittenQuiz(question, answered) : renderChoiceQuiz(question, answered)}
       ${answered ? `
         <div class="example">
           <b>${escapeHtml(question.feedbackTitle)}</b>
+          ${question.kind === "input" ? `<span>你的答案：${escapeHtml(quiz.answerValue || "空")}</span>` : ""}
           <span>${escapeHtml(question.feedback)}</span>
         </div>
         <button class="primary-button" data-action="next-quiz" type="button">${quiz.index + 1 >= quiz.questions.length ? "完成" : "下一题"}</button>
       ` : ""}
     </article>
+  `;
+}
+
+function renderChoiceQuiz(question, answered) {
+  return `
+    <div class="quiz-options">
+      ${question.options.map((option) => renderQuizOption(question, option, answered)).join("")}
+    </div>
+  `;
+}
+
+function renderWrittenQuiz(question, answered) {
+  return `
+    <div class="quiz-input-row">
+      <input
+        class="quiz-input"
+        data-quiz-answer="true"
+        type="text"
+        value="${escapeAttr(state.quiz.answerValue || "")}"
+        placeholder="${escapeAttr(question.placeholder || "输入答案")}"
+        autocapitalize="none"
+        autocomplete="off"
+        autocorrect="off"
+        ${answered ? "disabled" : ""}
+      />
+      <button class="primary-button" data-action="submit-written-quiz" type="button" ${answered ? "disabled" : ""}>提交</button>
+    </div>
   `;
 }
 
@@ -981,39 +1023,165 @@ function toggleMastered(id, label) {
 }
 
 function startKanaQuiz() {
-  const pool = shuffle(getFlatKana()).slice(0, 8);
+  const questionCount = 20;
   state.quiz = {
     type: "kana",
-    title: "五十音小测",
+    title: "五十音综合测",
     index: 0,
     score: 0,
     answered: false,
     selectedId: "",
-    questions: pool.map((item) => {
-      const correctLabel = `${getKanaChar(item)}  ${item.r}`;
-      const wrong = sample(getFlatKana().filter((candidate) => candidate.h !== item.h), 3);
-      return {
-        correctId: item.h,
-        prompt: `读音「${item.r}」对应哪个假名？`,
-        feedbackTitle: correctLabel,
-        feedback: `${item.h} 是平假名，${item.k} 是片假名。`,
-        options: shuffle([
-          { id: item.h, label: correctLabel },
-          ...wrong.map((candidate) => ({ id: candidate.h, label: `${getKanaChar(candidate)}  ${candidate.r}` }))
-        ])
-      };
-    })
+    answerValue: "",
+    questions: buildKanaQuizQuestions(questionCount)
   };
   saveState();
   renderKana();
 }
 
+function buildKanaQuizQuestions(count) {
+  const items = shuffle(getFlatKana());
+  const types = ["romaji-to-kana", "kana-to-romaji", "write-hiragana", "write-katakana", "write-romaji", "listen-kana"];
+  return Array.from({ length: count }, (_, index) => {
+    const item = items[index % items.length];
+    return createKanaQuestion(item, types[index % types.length]);
+  });
+}
+
+function createKanaQuestion(item, type) {
+  const kanaLabel = getKanaChar(item);
+  const feedbackTitle = `${item.h} / ${item.k} / ${item.r}`;
+  const feedback = `平假名：${item.h}。片假名：${item.k}。罗马音：${item.r}。`;
+
+  if (type === "romaji-to-kana") {
+    const options = buildKanaOptions(item);
+    return {
+      kind: "choice",
+      typeLabel: "读",
+      masteryId: item.h,
+      correctId: `kana:${item.h}`,
+      prompt: `读音「${item.r}」对应哪个${state.kanaMode === "katakana" ? "片假名" : "平假名"}？`,
+      feedbackTitle,
+      feedback,
+      options
+    };
+  }
+
+  if (type === "kana-to-romaji") {
+    const options = buildRomajiOptions(item);
+    return {
+      kind: "choice",
+      typeLabel: "拼",
+      masteryId: item.h,
+      correctId: `romaji:${item.r}`,
+      prompt: `假名「${kanaLabel}」应该怎么读？`,
+      feedbackTitle,
+      feedback,
+      options
+    };
+  }
+
+  if (type === "write-hiragana") {
+    return {
+      kind: "input",
+      typeLabel: "写",
+      masteryId: item.h,
+      prompt: `把读音「${item.r}」写成平假名。`,
+      placeholder: "例如：あ",
+      acceptedAnswers: [item.h],
+      feedbackTitle,
+      feedback
+    };
+  }
+
+  if (type === "write-katakana") {
+    return {
+      kind: "input",
+      typeLabel: "写",
+      masteryId: item.h,
+      prompt: `把读音「${item.r}」写成片假名。`,
+      placeholder: "例如：ア",
+      acceptedAnswers: [item.k],
+      feedbackTitle,
+      feedback
+    };
+  }
+
+  if (type === "write-romaji") {
+    return {
+      kind: "input",
+      typeLabel: "拼",
+      masteryId: item.h,
+      prompt: `写出假名「${kanaLabel}」的罗马音。`,
+      placeholder: "例如：shi",
+      acceptedAnswers: getRomajiAnswers(item.r),
+      feedbackTitle,
+      feedback
+    };
+  }
+
+  return {
+    kind: "choice",
+    typeLabel: "听",
+    masteryId: item.h,
+    correctId: `kana:${item.h}`,
+    prompt: `先点播放，选择你听到的${state.kanaMode === "katakana" ? "片假名" : "平假名"}。`,
+    speakText: item.h,
+    feedbackTitle,
+    feedback,
+    options: buildKanaOptions(item)
+  };
+}
+
+function buildKanaOptions(item) {
+  const wrong = sample(getFlatKana().filter((candidate) => candidate.h !== item.h && candidate.r !== item.r), 3);
+  return shuffle([
+    { id: `kana:${item.h}`, label: getKanaChar(item) },
+    ...wrong.map((candidate) => ({ id: `kana:${candidate.h}`, label: getKanaChar(candidate) }))
+  ]);
+}
+
+function buildRomajiOptions(item) {
+  const wrongItems = [];
+  const used = new Set([item.r]);
+  for (const candidate of shuffle(getFlatKana())) {
+    if (used.has(candidate.r)) continue;
+    used.add(candidate.r);
+    wrongItems.push(candidate);
+    if (wrongItems.length >= 3) break;
+  }
+  return shuffle([
+    { id: `romaji:${item.r}`, label: item.r },
+    ...wrongItems.map((candidate) => ({ id: `romaji:${candidate.r}`, label: candidate.r }))
+  ]);
+}
+
+function getRomajiAnswers(romaji) {
+  const aliases = {
+    shi: ["shi", "si"],
+    chi: ["chi", "ti"],
+    tsu: ["tsu", "tu"],
+    fu: ["fu", "hu"],
+    ji: ["ji", "zi"],
+    sha: ["sha", "sya"],
+    shu: ["shu", "syu"],
+    sho: ["sho", "syo"],
+    cha: ["cha", "cya", "tya"],
+    chu: ["chu", "cyu", "tyu"],
+    cho: ["cho", "cyo", "tyo"],
+    ja: ["ja", "jya", "zya"],
+    ju: ["ju", "jyu", "zyu"],
+    jo: ["jo", "jyo", "zyo"]
+  };
+  return aliases[romaji] || [romaji];
+}
+
 function startLevelQuiz(levelKey) {
   const level = levels[levelKey];
-  const source = state.queries[levelKey]
+  const filtered = state.queries[levelKey]
     ? level.grammar.filter((item) => matchGrammar(item, normalize(state.queries[levelKey])))
     : level.grammar;
-  const pool = sample(source, Math.min(5, source.length));
+  const source = filtered.length >= 20 ? filtered : level.grammar;
+  const pool = sample(source, Math.min(20, source.length));
   state.quiz = {
     type: "level",
     level: levelKey,
@@ -1022,9 +1190,12 @@ function startLevelQuiz(levelKey) {
     score: 0,
     answered: false,
     selectedId: "",
+    answerValue: "",
     questions: pool.map((item) => {
       const wrong = sample(level.grammar.filter((candidate) => candidate.id !== item.id), 3);
       return {
+        kind: "choice",
+        typeLabel: "语法",
         correctId: item.id,
         prompt: `「${item.zh}」常用哪个句型？`,
         feedbackTitle: `${item.title}：${item.pattern}`,
@@ -1047,8 +1218,30 @@ function answerQuiz(id) {
   state.quiz.answered = true;
   if (id === question.correctId) {
     state.quiz.score += 1;
-    if (state.quiz.type === "kana") state.mastered[`kana:${question.correctId}`] = true;
+    if (state.quiz.type === "kana" && question.masteryId) state.mastered[`kana:${question.masteryId}`] = true;
     if (state.quiz.type === "level") state.mastered[question.correctId] = true;
+  }
+  saveState();
+  renderAll();
+}
+
+function submitWrittenQuiz() {
+  if (!state.quiz || state.quiz.answered) return;
+  const question = state.quiz.questions[state.quiz.index];
+  if (!question || question.kind !== "input") return;
+
+  const answer = state.quiz.answerValue || "";
+  if (!normalizeAnswer(answer)) {
+    showToast("先输入答案再提交");
+    return;
+  }
+
+  const correct = (question.acceptedAnswers || []).some((accepted) => normalizeAnswer(answer) === normalizeAnswer(accepted));
+  state.quiz.selectedId = normalizeAnswer(answer);
+  state.quiz.answered = true;
+  if (correct) {
+    state.quiz.score += 1;
+    if (state.quiz.type === "kana" && question.masteryId) state.mastered[`kana:${question.masteryId}`] = true;
   }
   saveState();
   renderAll();
@@ -1059,6 +1252,7 @@ function nextQuiz() {
   state.quiz.index += 1;
   state.quiz.answered = false;
   state.quiz.selectedId = "";
+  state.quiz.answerValue = "";
   saveState();
   renderAll();
 }
@@ -1159,6 +1353,17 @@ function shuffle(items) {
 
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function normalizeAnswer(value) {
+  return toHalfWidth(String(value || ""))
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
+}
+
+function toHalfWidth(value) {
+  return value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xfee0));
 }
 
 function escapeHtml(value) {
