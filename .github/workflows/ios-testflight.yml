@@ -26,8 +26,6 @@ jobs:
       PROJECT_DIR: AoiJapanese
       PROJECT_FILE: AoiJapanese.xcodeproj
       TARGET_NAME: AoiJapanese
-      ARCHIVE_PATH: ${{ runner.temp }}/AoiJapanese.xcarchive
-      EXPORT_PATH: ${{ runner.temp }}/AoiJapaneseExport
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -86,6 +84,8 @@ jobs:
           cp "$ASC_KEY_PATH" "$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
 
           echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
+          echo "ARCHIVE_PATH=$RUNNER_TEMP/AoiJapanese.xcarchive" >> "$GITHUB_ENV"
+          echo "EXPORT_PATH=$RUNNER_TEMP/AoiJapaneseExport" >> "$GITHUB_ENV"
 
       - name: Archive signed app
         working-directory: ${{ env.PROJECT_DIR }}
