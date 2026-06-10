@@ -456,6 +456,303 @@ const levels = {
   )
 };
 
+const examStylePacks = {
+  n5: [
+    {
+      id: "particle-time-ni",
+      prompt: "わたしは 毎朝 七時（　）起きます。",
+      options: ["に", "で", "を", "と"],
+      correct: 0,
+      answer: "七時に起きます",
+      feedback: "具体时间点后面常用「に」。"
+    },
+    {
+      id: "possessive-no",
+      prompt: "これは 田中さん（　）本です。",
+      options: ["の", "を", "へ", "が"],
+      correct: 0,
+      answer: "田中さんの本",
+      feedback: "所属关系用「NのN」。"
+    },
+    {
+      id: "object-wo",
+      prompt: "昼ご飯（　）食べました。",
+      options: ["を", "に", "で", "から"],
+      correct: 0,
+      answer: "昼ご飯を食べました",
+      feedback: "动作对象后面用「を」。"
+    },
+    {
+      id: "place-de",
+      prompt: "駅（　）友だちに会いました。",
+      options: ["で", "を", "が", "まで"],
+      correct: 0,
+      answer: "駅で友だちに会いました",
+      feedback: "动作发生地点用「で」。"
+    },
+    {
+      id: "i-adj-past",
+      prompt: "昨日は とても（　）。",
+      options: ["寒かったです", "寒いでした", "寒くです", "寒いかったです"],
+      correct: 0,
+      answer: "寒かったです",
+      feedback: "い形容词过去肯定：い -> かったです。"
+    },
+    {
+      id: "request-te",
+      prompt: "もう一度 言って（　）。",
+      options: ["ください", "です", "ます", "でした"],
+      correct: 0,
+      answer: "言ってください",
+      feedback: "请求别人做某事用「Vてください」。"
+    },
+    {
+      id: "vocab-kippu",
+      prompt: "「切符」の意味はどれですか。",
+      options: ["票", "车站", "电车", "地图"],
+      correct: 0,
+      answer: "切符：票",
+      feedback: "交通场景常见词。"
+    },
+    {
+      id: "vocab-yasui",
+      prompt: "「安い」の反対に近い言葉はどれですか。",
+      options: ["高い", "新しい", "小さい", "古い"],
+      correct: 0,
+      answer: "安い ↔ 高い",
+      feedback: "价格便宜/贵的基础形容词。"
+    },
+    {
+      id: "reading-movie",
+      prompt: "きのう、友だちと映画を見ました。何をしましたか。",
+      options: ["映画を見ました", "本を読みました", "水を飲みました", "学校へ行きました"],
+      correct: 0,
+      answer: "映画を見ました",
+      feedback: "读解先抓动词短语。"
+    },
+    {
+      id: "question-where",
+      prompt: "A：トイレはどこですか。B：あそこ（　）です。",
+      options: ["です", "ます", "でした", "ません"],
+      correct: 0,
+      answer: "あそこです",
+      feedback: "回答地点判断句用「です」。"
+    },
+    {
+      id: "negative-masen",
+      prompt: "今日は 学校へ（　）。",
+      options: ["行きません", "行きますん", "行くません", "行きませんでしたか"],
+      correct: 0,
+      answer: "行きません",
+      feedback: "ます形否定是「ません」。"
+    },
+    {
+      id: "counter-basic",
+      prompt: "りんごを 三つ（　）。",
+      options: ["買いました", "買いでした", "買うました", "買ってでした"],
+      correct: 0,
+      answer: "三つ買いました",
+      feedback: "数量词可放在名词后、动词前。"
+    }
+  ],
+  n4: [
+    {
+      id: "koto-ga-dekiru",
+      prompt: "わたしは 漢字を読む（　）ができます。",
+      options: ["こと", "もの", "ため", "ところ"],
+      correct: 0,
+      answer: "読むことができます",
+      feedback: "能力表达用「V辞書形 + ことができます」。"
+    },
+    {
+      id: "ta-koto-ga-aru",
+      prompt: "日本料理を 食べた（　）があります。",
+      options: ["こと", "もの", "予定", "つもり"],
+      correct: 0,
+      answer: "食べたことがあります",
+      feedback: "经历表达用「Vた + ことがあります」。"
+    },
+    {
+      id: "node-reason",
+      prompt: "電車が遅れた（　）、遅刻しました。",
+      options: ["ので", "のに", "ても", "ながら"],
+      correct: 0,
+      answer: "遅れたので",
+      feedback: "较客观原因用「ので」。"
+    },
+    {
+      id: "temo-concession",
+      prompt: "雨が（　）、行きます。",
+      options: ["降っても", "降るので", "降ったら", "降りながら"],
+      correct: 0,
+      answer: "雨が降っても",
+      feedback: "让步：即使下雨也去。"
+    },
+    {
+      id: "you-ni-naru",
+      prompt: "毎日練習して、日本語が話せる（　）なりました。",
+      options: ["ように", "ために", "ところに", "ことに"],
+      correct: 0,
+      answer: "話せるようになりました",
+      feedback: "变化到能做某事：可能形 + ようになる。"
+    },
+    {
+      id: "te-oku",
+      prompt: "旅行の前に ホテルを予約して（　）。",
+      options: ["おきます", "みます", "しまいます", "あります"],
+      correct: 0,
+      answer: "予約しておきます",
+      feedback: "提前准备用「Vておく」。"
+    },
+    {
+      id: "vocab-yoyaku",
+      prompt: "「予約」の意味はどれですか。",
+      options: ["预约", "说明", "确认", "联系"],
+      correct: 0,
+      answer: "予約：预约",
+      feedback: "生活和出行高频词。"
+    },
+    {
+      id: "vocab-norikaeru",
+      prompt: "「乗り換える」はどんな意味ですか。",
+      options: ["换乘", "迟到", "预约", "搬家"],
+      correct: 0,
+      answer: "乗り換える：换乘",
+      feedback: "交通场景常见动词。"
+    },
+    {
+      id: "reading-weekend",
+      prompt: "週末は掃除したり買い物したりします。週末に何をしますか。",
+      options: ["掃除や買い物をします", "宿題だけします", "旅行だけします", "会議をします"],
+      correct: 0,
+      answer: "掃除や買い物をします",
+      feedback: "「たり〜たり」表示列举动作。"
+    },
+    {
+      id: "hearsay-sou",
+      prompt: "天気予報によると、明日は寒い（　）です。",
+      options: ["そう", "よう", "みたい", "ため"],
+      correct: 0,
+      answer: "寒いそうです",
+      feedback: "传闻：普通形 + そうです。"
+    },
+    {
+      id: "ba-condition",
+      prompt: "時間が（　）、映画を見たいです。",
+      options: ["あれば", "あると", "あっても", "ありながら"],
+      correct: 0,
+      answer: "時間があれば",
+      feedback: "条件形「ば」。"
+    },
+    {
+      id: "mitai",
+      prompt: "この町は 京都（　）です。",
+      options: ["みたい", "ため", "こと", "予定"],
+      correct: 0,
+      answer: "京都みたいです",
+      feedback: "比喻和样态可用「Nみたいです」。"
+    }
+  ],
+  n3: [
+    {
+      id: "ni-taishite",
+      prompt: "お客様（　）丁寧に話してください。",
+      options: ["に対して", "によって", "に比べて", "につれて"],
+      correct: 0,
+      answer: "お客様に対して",
+      feedback: "动作、态度的对象用「に対して」。"
+    },
+    {
+      id: "wake-dewa-nai",
+      prompt: "嫌いな（　）。ただ、少し苦手です。",
+      options: ["わけではありません", "はずがありません", "に違いありません", "べきです"],
+      correct: 0,
+      answer: "嫌いなわけではありません",
+      feedback: "部分否定：并不是讨厌。"
+    },
+    {
+      id: "ni-chigai-nai",
+      prompt: "毎日練習しているから、彼は上手な（　）。",
+      options: ["に違いない", "に限らない", "にしては", "に応じて"],
+      correct: 0,
+      answer: "上手に違いない",
+      feedback: "强推测：一定是。"
+    },
+    {
+      id: "ue-de",
+      prompt: "内容を確認した（　）、返事します。",
+      options: ["上で", "一方で", "反面", "かわりに"],
+      correct: 0,
+      answer: "確認した上で",
+      feedback: "先做 A，再做 B：Vた + 上で。"
+    },
+    {
+      id: "dake-de-naku",
+      prompt: "文法（　）、発音も練習します。",
+      options: ["だけでなく", "ばかりに", "ものの", "くせに"],
+      correct: 0,
+      answer: "文法だけでなく",
+      feedback: "不但 A，而且 B。"
+    },
+    {
+      id: "gachi",
+      prompt: "忙しいと、食事を忘れ（　）です。",
+      options: ["がち", "っぽい", "だらけ", "気味"],
+      correct: 0,
+      answer: "忘れがちです",
+      feedback: "容易发生的负面倾向用「がち」。"
+    },
+    {
+      id: "vocab-eikyou",
+      prompt: "「影響」の意味はどれですか。",
+      options: ["影响", "理由", "习惯", "责任"],
+      correct: 0,
+      answer: "影響：影响",
+      feedback: "N3 抽象表达高频词。"
+    },
+    {
+      id: "vocab-shimekiri",
+      prompt: "「締め切り」はどんな意味ですか。",
+      options: ["截止日期", "客户", "同事", "会议"],
+      correct: 0,
+      answer: "締め切り：截止日期",
+      feedback: "工作和学习场景高频词。"
+    },
+    {
+      id: "reading-practice",
+      prompt: "日本語は、文法だけでなく発音も大切です。この文に合う説明はどれですか。",
+      options: ["文法和发音都重要", "只要学文法就够了", "发音不重要", "不需要练习"],
+      correct: 0,
+      answer: "文法和发音都重要",
+      feedback: "「だけでなく」表示不仅。"
+    },
+    {
+      id: "to-wa-kagiranai",
+      prompt: "高いものが いつもいい（　）。",
+      options: ["とは限りません", "に違いありません", "べきです", "わけです"],
+      correct: 0,
+      answer: "いいとは限りません",
+      feedback: "不一定：とは限らない。"
+    },
+    {
+      id: "ni-yotte",
+      prompt: "国（　）習慣が違います。",
+      options: ["によって", "に対して", "に比べて", "に関して"],
+      correct: 0,
+      answer: "国によって",
+      feedback: "根据、因...而不同用「によって」。"
+    },
+    {
+      id: "to-iu-yori",
+      prompt: "これは趣味（　）、習慣です。",
+      options: ["というより", "としても", "にしては", "どころか"],
+      correct: 0,
+      answer: "趣味というより、習慣です",
+      feedback: "与其说 A，不如说 B。"
+    }
+  ]
+};
+
 const screenTitles = {
   home: "练习",
   kana: "五十音",
@@ -470,6 +767,7 @@ const defaultState = {
   selectedKana: "あ",
   levelSection: { n5: "grammar", n4: "grammar", n3: "grammar" },
   queries: { n5: "", n4: "", n3: "" },
+  wordbook: { level: "n5", index: 0, flipped: false, direction: "ja-zh" },
   expandedId: "",
   route: { screen: "", unit: "", detailId: "" },
   mastered: {},
@@ -482,6 +780,8 @@ let deferredInstallPrompt = null;
 let toastTimer = null;
 let speechRecognition = null;
 let activeWritingCanvas = null;
+let writingImageCounter = 0;
+const writingImages = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   bindEvents();
@@ -528,6 +828,12 @@ function handleClick(event) {
   if (action === "start-mixed-quiz") startMixedQuiz();
   if (action === "start-voice-quiz") startVoiceQuiz();
   if (action === "start-kana-quiz") startKanaQuiz();
+  if (action === "set-wordbook-level") setWordbookLevel(level);
+  if (action === "flip-wordbook") flipWordbook();
+  if (action === "move-wordbook") moveWordbook(Number(value || 1));
+  if (action === "toggle-word-mastered") toggleWordMastered(id);
+  if (action === "start-wordbook-quiz") startWordbookQuiz(level);
+  if (action === "start-exam-quiz") startExamQuiz(level);
   if (action === "set-level-section") setLevelSection(level, value);
   if (action === "expand-knowledge") toggleExpanded(id);
   if (action === "toggle-mastered") toggleMastered(id, levels[level]?.label || "知识点");
@@ -620,6 +926,30 @@ function clearWritingPad(button) {
   activeWritingCanvas = null;
 }
 
+function captureWritingPad(question) {
+  if (!question?.writingTarget) return;
+  const canvas = document.querySelector(".writing-pad");
+  if (!canvas || isCanvasBlank(canvas)) return;
+
+  const imageId = `writing-${Date.now()}-${writingImageCounter += 1}`;
+  writingImages[imageId] = canvas.toDataURL("image/png");
+  question.writingImageId = imageId;
+}
+
+function getWritingImage(question) {
+  return question?.writingImageId ? writingImages[question.writingImageId] || "" : "";
+}
+
+function isCanvasBlank(canvas) {
+  const context = canvas.getContext("2d");
+  if (!context) return true;
+  const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  for (let index = 3; index < data.length; index += 4) {
+    if (data[index] !== 0) return false;
+  }
+  return true;
+}
+
 function getCanvasPoint(canvas, event) {
   const rect = canvas.getBoundingClientRect();
   return {
@@ -644,6 +974,7 @@ function mergeState(base, saved) {
     ...saved,
     levelSection: { ...base.levelSection, ...(saved.levelSection || {}) },
     queries: { ...base.queries, ...(saved.queries || {}) },
+    wordbook: { ...base.wordbook, ...(saved.wordbook || {}) },
     route: { ...base.route, ...(saved.route || {}) },
     mastered: { ...(saved.mastered || {}) }
   };
@@ -780,6 +1111,19 @@ function renderHome() {
         ${renderPracticeQuick("N5", "20 题", "n5")}
         ${renderPracticeQuick("N4", "20 题", "n4")}
         ${renderPracticeQuick("N3", "20 题", "n3")}
+      </div>
+    </section>
+
+    ${renderWordbookPanel()}
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>JLPT 风格题</h3>
+      </div>
+      <div class="quick-grid">
+        ${renderExamQuick("N5", "20 题", "n5")}
+        ${renderExamQuick("N4", "20 题", "n4")}
+        ${renderExamQuick("N3", "20 题", "n3")}
       </div>
     </section>
 
@@ -989,6 +1333,7 @@ function renderLevel(levelKey) {
         ${renderUnitNode({ screen: levelKey, unit: "vocab", title: "词汇记忆", label: "2", detail: `${getLevelWords(levelKey).length} 个词，做中日互认和听音。`, tone: 1 })}
         ${renderUnitNode({ screen: levelKey, unit: "kanji", title: "汉字识别", label: "3", detail: `${level.kanji.length} 个汉字，先做快速识别。`, tone: 2 })}
         ${renderUnitNode({ screen: levelKey, unit: "practice", title: "综合练习", label: "4", detail: "20 题混合：语法、词汇、汉字、输入、听力、跟读。", tone: 3 })}
+        ${renderUnitNode({ screen: levelKey, unit: "exam", title: "JLPT 风格题", label: "5", detail: "文字词汇、语法、读解混合刷题。", tone: 1 })}
       </div>
     </section>
 
@@ -999,7 +1344,11 @@ function renderLevel(levelKey) {
 function renderLevelUnit(levelKey, unit, query) {
   const level = levels[levelKey];
   const unitTitle = getLevelUnitTitle(unit);
-  const content = unit === "practice" ? renderPracticeUnit(levelKey) : renderLevelContent(levelKey, unit, query);
+  const content = unit === "practice"
+    ? renderPracticeUnit(levelKey)
+    : unit === "exam"
+      ? renderExamUnit(levelKey)
+      : renderLevelContent(levelKey, unit, query);
 
   return `
     <section class="hero">
@@ -1019,8 +1368,9 @@ function renderLevelUnit(levelKey, unit, query) {
         ${renderLevelUnitChip(levelKey, "vocab", "词汇", unit)}
         ${renderLevelUnitChip(levelKey, "kanji", "汉字", unit)}
         ${renderLevelUnitChip(levelKey, "practice", "练习", unit)}
+        ${renderLevelUnitChip(levelKey, "exam", "JLPT", unit)}
       </div>
-      ${unit !== "practice" ? `<input class="search-box" data-search-level="${levelKey}" type="search" value="${escapeAttr(query || "")}" placeholder="搜索：助词、原因、ています..." />` : ""}
+      ${unit !== "practice" && unit !== "exam" ? `<input class="search-box" data-search-level="${levelKey}" type="search" value="${escapeAttr(query || "")}" placeholder="搜索：助词、原因、ています..." />` : ""}
     </div>
 
     ${state.quiz?.type === "level" && state.quiz.level === levelKey ? renderQuiz() : ""}
@@ -1099,6 +1449,48 @@ function renderPracticeUnit(levelKey) {
         </button>
       </div>
     </section>
+  `;
+}
+
+function renderExamUnit(levelKey) {
+  const level = levels[levelKey];
+  const questions = buildExamStyleQuestions(levelKey);
+  return `
+    <section class="panel">
+      <div class="section-title">
+        <h3>${escapeHtml(level.label)} JLPT 风格题</h3>
+      </div>
+      <div class="practice-mode-grid">
+        <button class="practice-mode-card main" data-action="start-exam-quiz" data-level="${levelKey}" type="button">
+          <span>专项</span>
+          <strong>20 题</strong>
+          <p>文字词汇、语法、读解混合。</p>
+        </button>
+        <button class="practice-mode-card" data-action="start-level-quiz" data-level="${levelKey}" type="button">
+          <span>综合</span>
+          <strong>20 题</strong>
+          <p>回到语法、词汇、汉字、听力、跟读混合练习。</p>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>题型预览</h3>
+      </div>
+      <div class="exam-preview-list">
+        ${questions.slice(0, 6).map(renderExamPreviewItem).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderExamPreviewItem(question) {
+  return `
+    <article class="exam-preview-item">
+      <span>${escapeHtml(question.typeLabel || "JLPT")}</span>
+      <strong>${escapeHtml(question.prompt)}</strong>
+    </article>
   `;
 }
 
@@ -1186,7 +1578,8 @@ function getLevelUnitTitle(unit) {
     grammar: "语法闯关",
     vocab: "词汇记忆",
     kanji: "汉字识别",
-    practice: "综合练习"
+    practice: "综合练习",
+    exam: "JLPT 风格题"
   };
   return titles[unit] || "单元";
 }
@@ -1360,6 +1753,7 @@ function renderSpeechQuiz(question, answered) {
 }
 
 function renderWrittenQuiz(question, answered) {
+  const writingImage = getWritingImage(question);
   const writingPractice = question.writingTarget ? `
     <div class="writing-pad-wrap ${answered ? "is-locked" : ""}">
       <div class="writing-pad-head">
@@ -1369,6 +1763,18 @@ function renderWrittenQuiz(question, answered) {
       <canvas class="writing-pad" width="560" height="360" aria-label="五十音手写练习区"></canvas>
       <p class="writing-hint">先在格子里手写一遍，再用输入框提交答案。</p>
     </div>
+    ${answered ? `
+      <div class="writing-check-row">
+        <article class="writing-check-card">
+          <span>你的手写</span>
+          ${writingImage ? `<img class="writing-preview" src="${escapeAttr(writingImage)}" alt="你的手写结果" />` : `<strong class="writing-empty-preview">未留下笔迹</strong>`}
+        </article>
+        <article class="writing-check-card standard">
+          <span>标准字</span>
+          <strong>${escapeHtml(question.writingTarget)}</strong>
+        </article>
+      </div>
+    ` : ""}
   ` : "";
 
   return `
@@ -1486,6 +1892,56 @@ function renderPracticeQuick(title, value, level) {
   `;
 }
 
+function renderExamQuick(title, value, level) {
+  return `
+    <button class="quick-card" data-action="start-exam-quiz" data-level="${level}" type="button">
+      <span>${escapeHtml(title)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </button>
+  `;
+}
+
+function renderWordbookPanel() {
+  const levelKey = levels[state.wordbook.level] ? state.wordbook.level : "n5";
+  const words = getLevelWords(levelKey);
+  const word = getCurrentWordbookWord(levelKey);
+  const stats = getWordbookStats(levelKey);
+  const front = state.wordbook.direction === "zh-ja" ? word.zh : word.ja;
+  const back = state.wordbook.direction === "zh-ja" ? word.ja : word.zh;
+
+  return `
+    <section class="panel wordbook-panel">
+      <div class="section-title">
+        <h3>单词本</h3>
+        <button class="text-button" data-action="start-wordbook-quiz" data-level="${levelKey}" type="button">刷 20 题</button>
+      </div>
+      <div class="segmented">
+        ${Object.keys(levels).map((key) => `
+          <button class="chip ${levelKey === key ? "is-active" : ""}" data-action="set-wordbook-level" data-level="${key}" type="button">
+            ${escapeHtml(levels[key].label)}
+          </button>
+        `).join("")}
+      </div>
+      <button class="flashcard ${state.wordbook.flipped ? "is-flipped" : ""}" data-action="flip-wordbook" type="button">
+        <span>${escapeHtml(levels[levelKey].label)} · ${stats.current}/${stats.total}</span>
+        <strong>${escapeHtml(state.wordbook.flipped ? back : front)}</strong>
+        <p>${escapeHtml(state.wordbook.flipped ? `${word.groupTitle} · ${front}` : "点一下翻面")}</p>
+      </button>
+      <div class="wordbook-actions">
+        <button class="secondary-button" data-action="move-wordbook" data-value="-1" type="button">上一张</button>
+        <button class="secondary-button" data-action="toggle-word-mastered" data-id="${escapeAttr(word.id)}" type="button">
+          ${isMastered(word.id) ? "已掌握" : "标记掌握"}
+        </button>
+        <button class="secondary-button" data-action="move-wordbook" data-value="1" type="button">下一张</button>
+      </div>
+      <div class="wordbook-meter">
+        <span>掌握 ${stats.done}/${stats.total}</span>
+        <i><b style="width:${stats.percent}%"></b></i>
+      </div>
+    </section>
+  `;
+}
+
 function renderStat(title, value) {
   return `<article class="stat-card"><span>${escapeHtml(title)}</span><strong>${escapeHtml(value)}</strong></article>`;
 }
@@ -1563,6 +2019,41 @@ function toggleMastered(id, label) {
   renderAll();
 }
 
+function setWordbookLevel(levelKey) {
+  if (!levels[levelKey]) return;
+  state.wordbook.level = levelKey;
+  state.wordbook.index = 0;
+  state.wordbook.flipped = false;
+  saveState();
+  renderAll();
+}
+
+function flipWordbook() {
+  state.wordbook.flipped = !state.wordbook.flipped;
+  saveState();
+  renderHome();
+}
+
+function moveWordbook(delta) {
+  const levelKey = levels[state.wordbook.level] ? state.wordbook.level : "n5";
+  const words = getLevelWords(levelKey);
+  if (!words.length) return;
+  state.wordbook.index = (state.wordbook.index + delta + words.length) % words.length;
+  state.wordbook.flipped = false;
+  saveState();
+  renderHome();
+}
+
+function toggleWordMastered(id) {
+  if (!id) return;
+  state.mastered[id] = !state.mastered[id];
+  if (!state.mastered[id]) delete state.mastered[id];
+  state.wordbook.flipped = false;
+  saveState();
+  showToast(state.mastered[id] ? "单词已标记掌握" : "已取消掌握");
+  renderAll();
+}
+
 function startMixedQuiz() {
   state.quiz = createQuiz("mixed", "综合随机练习", buildMixedQuizQuestions(30));
   saveState();
@@ -1573,6 +2064,14 @@ function startVoiceQuiz() {
   state.quiz = createQuiz("voice", "语音专项练习", buildVoiceQuizQuestions(20));
   saveState();
   renderHome();
+}
+
+function startWordbookQuiz(levelKey = state.wordbook.level) {
+  const key = levels[levelKey] ? levelKey : "n5";
+  state.wordbook.level = key;
+  state.quiz = createQuiz("wordbook", `${levels[key].label} 单词本练习`, buildWordbookQuizQuestions(key, 20), { level: key });
+  saveState();
+  renderAll();
 }
 
 function startKanaQuiz() {
@@ -1786,18 +2285,29 @@ function startLevelQuiz(levelKey) {
   else renderLevel(levelKey);
 }
 
+function startExamQuiz(levelKey) {
+  const level = levels[levelKey];
+  if (!level) return;
+  state.quiz = createQuiz("level", `${level.label} JLPT 风格练习`, buildExamQuizQuestions(levelKey, 20), { level: levelKey, examMode: true });
+  saveState();
+  if (state.activeScreen === "home") renderHome();
+  else renderLevel(levelKey);
+}
+
 function buildBalancedLevelQuizQuestions(levelKey, count, query = "") {
   const bank = buildLevelPracticeBank(levelKey, query);
   const grammar = bank.filter((question) => isGrammarPractice(question, levelKey) && !isVoiceQuestion(question));
   const vocab = bank.filter((question) => isVocabPractice(question, levelKey) && !isVoiceQuestion(question));
   const kanji = bank.filter((question) => question.typeLabel === "汉字");
   const voice = bank.filter(isVoiceQuestion);
+  const exam = bank.filter((question) => question.typeLabel === "JLPT");
 
   const guaranteed = [
     ...sample(grammar, Math.min(8, grammar.length)),
     ...sample(vocab, Math.min(5, vocab.length)),
     ...sample(kanji, Math.min(3, kanji.length)),
-    ...sample(voice, Math.min(4, voice.length))
+    ...sample(voice, Math.min(2, voice.length)),
+    ...sample(exam, Math.min(2, exam.length))
   ];
 
   return takeUniqueQuestions(guaranteed, bank, count);
@@ -1841,8 +2351,42 @@ function buildLevelPracticeBank(levelKey, query = "") {
   return [
     ...grammarItems.flatMap((item) => buildGrammarQuestions(levelKey, item)),
     ...vocabItems.flatMap((item) => buildVocabQuestions(levelKey, item)),
-    ...sample(kanjiItems, Math.min(80, kanjiItems.length)).map((item) => buildKanjiQuestion(item))
+    ...sample(kanjiItems, Math.min(80, kanjiItems.length)).map((item) => buildKanjiQuestion(item)),
+    ...buildExamStyleQuestions(levelKey)
   ];
+}
+
+function buildWordbookQuizQuestions(levelKey, count) {
+  const bank = getLevelWords(levelKey).flatMap((item) => buildVocabQuestions(levelKey, item));
+  return sample(bank, Math.min(count, bank.length));
+}
+
+function buildExamQuizQuestions(levelKey, count) {
+  const exam = buildExamStyleQuestions(levelKey);
+  const fallback = buildLevelPracticeBank(levelKey).filter((question) => !isVoiceQuestion(question));
+  return takeUniqueQuestions(exam, [...exam, ...fallback], count);
+}
+
+function buildExamStyleQuestions(levelKey) {
+  return (examStylePacks[levelKey] || []).map((item) => buildExamStyleChoice(levelKey, item));
+}
+
+function buildExamStyleChoice(levelKey, item) {
+  const correctId = `exam:${levelKey}:${item.id}:${item.correct}`;
+  return {
+    kind: "choice",
+    typeLabel: "JLPT",
+    masteryKey: `exam:${levelKey}:${item.id}`,
+    correctId,
+    prompt: item.prompt,
+    feedbackTitle: item.answer,
+    feedback: item.feedback,
+    speakText: item.speakText || "",
+    options: shuffle(item.options.map((label, index) => ({
+      id: `exam:${levelKey}:${item.id}:${index}`,
+      label
+    })))
+  };
 }
 
 function buildGrammarQuestions(levelKey, item) {
@@ -1886,7 +2430,7 @@ function buildGrammarQuestions(levelKey, item) {
       typeLabel: "输入",
       masteryKey: item.id,
       prompt: `输入这个意思对应的句型：${item.zh}`,
-      placeholder: item.title,
+      placeholder: "输入句型",
       acceptedAnswers: getGrammarAnswers(item),
       feedbackTitle: `${item.title}：${item.pattern}`,
       feedback: `${item.example}（${item.exampleZh}）`
@@ -1956,7 +2500,7 @@ function buildVocabQuestions(levelKey, item) {
       typeLabel: "输入",
       masteryKey: item.id,
       prompt: `把「${item.zh}」写成日语。`,
-      placeholder: item.ja,
+      placeholder: "输入日语词",
       acceptedAnswers: [item.ja],
       feedbackTitle: `${item.ja}：${item.zh}`,
       feedback: `词汇主题：${item.groupTitle}`
@@ -2029,6 +2573,26 @@ function getLevelWords(levelKey) {
   );
 }
 
+function getCurrentWordbookWord(levelKey) {
+  const words = getLevelWords(levelKey);
+  if (!words.length) return { id: "", levelKey, groupTitle: "", ja: "", zh: "" };
+  const index = ((state.wordbook.index % words.length) + words.length) % words.length;
+  return words[index];
+}
+
+function getWordbookStats(levelKey) {
+  const words = getLevelWords(levelKey);
+  const total = words.length;
+  const done = words.filter((word) => isMastered(word.id)).length;
+  const index = total ? ((state.wordbook.index % total) + total) % total : 0;
+  return {
+    total,
+    done,
+    current: total ? index + 1 : 0,
+    percent: percent(done, total)
+  };
+}
+
 function answerQuiz(id) {
   if (!state.quiz || state.quiz.answered) return;
   const question = state.quiz.questions[state.quiz.index];
@@ -2057,6 +2621,7 @@ function submitWrittenQuiz() {
     return;
   }
 
+  captureWritingPad(question);
   const correct = (question.acceptedAnswers || []).some((accepted) => normalizeAnswer(answer) === normalizeAnswer(accepted));
   state.quiz.selectedId = normalizeAnswer(answer);
   state.quiz.answered = true;
@@ -2243,7 +2808,7 @@ function getTotalProgress() {
 function getPracticePoolSize() {
   return getFlatKana().length + Object.keys(levels).reduce((sum, levelKey) => {
     const level = levels[levelKey];
-    return sum + level.grammar.length + getLevelWords(levelKey).length + level.kanji.length;
+    return sum + level.grammar.length + getLevelWords(levelKey).length + level.kanji.length + (examStylePacks[levelKey] || []).length;
   }, 0);
 }
 
